@@ -58,12 +58,13 @@ QModelIndex MobileListModel::mapFromSource(const QModelIndex &idx) const
 	return index(mapRowFromSource(idx.parent(), idx.row()), idx.column());
 }
 
-QVariant MobileListModel::data(const QModelIndex &index, int role) const override
+QVariant MobileListModel::data(const QModelIndex &index, int role) const
 {
 	switch(role) {
 	case IsTopLevelRole:
 		return index.row() <= expandedRow || index.row() > expandedRow + 1 + numSubItems();
 	case IsTripRole:
+		return false; // this is just to make things compile - the new IS_TRIP_ROLE will likely handle this
 	}
 }
 
