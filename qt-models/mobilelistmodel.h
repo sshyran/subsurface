@@ -55,6 +55,7 @@ private:
 	bool isExpandedRow(const QModelIndex &parent) const;
 	int mapRowFromSource(const QModelIndex &parent, int row) const;
 	QModelIndex mapFromSource(const QModelIndex &idx) const;
+	QModelIndex mapToSource(const QModelIndex &idx, int role) const;
 	QVariant data(const QModelIndex &index, int role) const override;
 
 	int expandedRow;
