@@ -58,14 +58,32 @@ QModelIndex MobileListModel::mapFromSource(const QModelIndex &idx) const
 	return index(mapRowFromSource(idx.parent(), idx.row()), idx.column());
 }
 
+// We translate roles into columns. The source model will understand our roles.
+// Hopefully, Qt doesn't intercept column numbers beyond the columnCount limit.
+QModelIndex MobileListModel::mapToSource(const QModelIndex &idx, int role) const
+{
+	if (idx.isValid())
+		return idx;
+	DiveTripModelBase *source = DiveTripModelBase::instance();
+	int row = idx.row();
+	if (row <= expandedRow)
+		return source->index(row, role);
+
+	int numSub = numSubItems();
+	if (row > expandedRow + 1 + numSub)
+		return source->index(row - 1 - numSub, role);
+
+	QModelIndex parent = source->index(expandedRow, 0);
+	return source->index(row - 1 - numSub, role, parent);
+}
+
 QVariant MobileListModel::data(const QModelIndex &index, int role) const
 {
-	switch(role) {
-	case IsTopLevelRole:
+	if (role == IsTopLevelRole)
 		return index.row() <= expandedRow || index.row() > expandedRow + 1 + numSubItems();
-	case IsTripRole:
-		return false; // this is just to make things compile - the new IS_TRIP_ROLE will likely handle this
-	}
+
+	DiveTripModelBase *source = DiveTripModelBase::instance();
+	return source->data(mapToSource(index, role), Qt::DisplayRole);
 }
 
 void MobileListModel::resetModel(DiveTripModelBase::Layout layout)
