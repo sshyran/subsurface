@@ -27,6 +27,47 @@ void MobileListModel::connectSignals()
 	connect(source, &DiveTripModelBase::dataChanged, this, &MobileListModel::changed);
 }
 
+QHash<int, QByteArray> MobileListModel::roleNames() const
+{
+	QHash<int, QByteArray> roles;
+	roles[DiveTripModelBase::IS_TRIP_ROLE] = "isTrip";
+	roles[IsTopLevelRole] = "isTopLevel";
+	roles[DiveDateRole] = "date";
+	roles[TripIdRole] = "tripId";
+	roles[TripNrDivesRole] = "tripNrDives";
+	roles[DateTimeRole] = "dateTime";
+	roles[IdRole] = "id";
+	roles[NumberRole] = "number";
+	roles[LocationRole] = "location";
+	roles[DepthRole] = "depth";
+	roles[DurationRole] = "duration";
+	roles[DepthDurationRole] = "depthDuration";
+	roles[RatingRole] = "rating";
+	roles[VizRole] = "viz";
+	roles[SuitRole] = "suit";
+	roles[AirTempRole] = "airTemp";
+	roles[WaterTempRole] = "waterTemp";
+	roles[SacRole] = "sac";
+	roles[SumWeightRole] = "sumWeight";
+	roles[DiveMasterRole] = "diveMaster";
+	roles[BuddyRole] = "buddy";
+	roles[NotesRole]= "notes";
+	roles[GpsRole] = "gps";
+	roles[GpsDecimalRole] = "gpsDecimal";
+	roles[NoDiveRole] = "noDive";
+	roles[DiveSiteRole] = "diveSite";
+	roles[CylinderRole] = "cylinder";
+	roles[GetCylinderRole] = "getCylinder";
+	roles[CylinderListRole] = "cylinderList";
+	roles[SingleWeightRole] = "singleWeight";
+	roles[StartPressureRole] = "startPressure";
+	roles[EndPressureRole] = "endPressure";
+	roles[FirstGasRole] = "firstGas";
+	roles[CollapsedRole] = "collapsed";
+	roles[SelectedRole] = "selected";
+	return roles;
+}
+
 int MobileListModel::numSubItems() const
 {
 	if (expandedRow < 0)
@@ -64,23 +105,22 @@ QModelIndex MobileListModel::mapFromSource(const QModelIndex &idx) const
 	return createIndex(mapRowFromSource(idx.parent(), idx.row()), idx.column());
 }
 
-// We translate roles into columns. The source model will understand our roles.
-// Hopefully, Qt doesn't intercept column numbers beyond the columnCount limit.
-QModelIndex MobileListModel::mapToSource(const QModelIndex &idx, int role) const
+QModelIndex MobileListModel::mapToSource(const QModelIndex &idx) const
 {
 	if (idx.isValid())
 		return idx;
 	DiveTripModelBase *source = DiveTripModelBase::instance();
 	int row = idx.row();
+	int col = idx.column();
 	if (row <= expandedRow)
-		return source->index(row, role);
+		return source->index(row, col);
 
 	int numSub = numSubItems();
 	if (row > expandedRow + 1 + numSub)
-		return source->index(row - 1 - numSub, role);
+		return source->index(row - 1 - numSub, col);
 
 	QModelIndex parent = source->index(expandedRow, 0);
-	return source->index(row - 1 - numSub, role, parent);
+	return source->index(row - 1 - numSub, col, parent);
 }
 
 QModelIndex MobileListModel::index(int row, int column, const QModelIndex &parent) const
@@ -117,7 +157,7 @@ QVariant MobileListModel::data(const QModelIndex &index, int role) const
 		return index.row() <= expandedRow || index.row() > expandedRow + 1 + numSubItems();
 
 	DiveTripModelBase *source = DiveTripModelBase::instance();
-	return source->data(mapToSource(index, role), Qt::DisplayRole);
+	return source->data(mapToSource(index), role);
 }
 
 void MobileListModel::resetModel(DiveTripModelBase::Layout layout)

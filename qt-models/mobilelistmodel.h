@@ -8,8 +8,7 @@ class MobileListModel : public QAbstractItemModel {
 	Q_OBJECT
 public:
 	enum Roles {
-		IsTopLevelRole = Qt::UserRole + 1,
-		IsTripRole,
+		IsTopLevelRole = DiveTripModelBase::LAST_ROLE + 1,
 		DiveDateRole,
 		TripIdRole,
 		TripNrDivesRole,
@@ -46,10 +45,6 @@ public:
 	};
 	MobileListModel();
 	static MobileListModel *instance();
-	QModelIndex index(int row, int column, const QModelIndex &parent) const override;
-	QModelIndex parent(const QModelIndex &index) const override;
-	int rowCount(const QModelIndex &parent) const override;
-	int columnCount(const QModelIndex &parent) const;
 	void resetModel(DiveTripModelBase::Layout layout);	// Switch between tree and list view
 	void expand(const QModelIndex &index);
 	void unexpand();
@@ -60,8 +55,13 @@ private:
 	bool isExpandedRow(const QModelIndex &parent) const;
 	int mapRowFromSource(const QModelIndex &parent, int row) const;
 	QModelIndex mapFromSource(const QModelIndex &idx) const;
-	QModelIndex mapToSource(const QModelIndex &idx, int role) const;
+	QModelIndex mapToSource(const QModelIndex &idx) const;
 	QVariant data(const QModelIndex &index, int role) const override;
+	QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+	QModelIndex parent(const QModelIndex &index) const override;
+	int rowCount(const QModelIndex &parent) const override;
+	int columnCount(const QModelIndex &parent) const override;
+	QHash<int, QByteArray> roleNames() const override;
 
 	int expandedRow;
 private slots:
