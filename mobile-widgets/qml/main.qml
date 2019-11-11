@@ -310,14 +310,14 @@ Kirigami.ApplicationWindow {
 					onTriggered: {
 						globalDrawer.close()
 						showBusy()
-						diveList.diveListModel = null
+						newDiveList.diveListModel = null
 						manager.applyGpsData()
 						diveModel.resetInternalData()
 						manager.refreshDiveList()
 						while (pageStack.depth > 1) {
 							pageStack.pop()
 						}
-						diveList.diveListModel = diveModel
+						newDiveList.diveListModel = diveModel
 						pageStack.push(diveList)
 						hideBusy()
 					}
@@ -704,8 +704,8 @@ if you have network connectivity and want to sync your data to cloud storage."),
 		}
 	}
 
-	pageStack.initialPage: DiveList {
-		id: diveList
+	pageStack.initialPage: NewDiveList {
+		id: newDiveList
 		opacity: 0
 		Behavior on opacity {
 			NumberAnimation {
@@ -845,7 +845,7 @@ if you have network connectivity and want to sync your data to cloud storage."),
 		if (Screen.manufacturer + " " + Screen.model + " " + Screen.name !== "  ")
 			manager.appendTextToLog("Running on " + Screen.manufacturer + " " + Screen.model + " " + Screen.name)
 		rootItem.visible = true
-		diveList.opacity = 1
+		newDiveList.opacity = 1
 		rootItem.opacity = 1
 		manager.appendTextToLog("setting the defaultColumnWidth to " + Kirigami.Units.gridUnit * 21)
 		pageStack.defaultColumnWidth = Kirigami.Units.gridUnit * 21
