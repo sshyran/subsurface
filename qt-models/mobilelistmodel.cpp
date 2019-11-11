@@ -63,7 +63,6 @@ QHash<int, QByteArray> MobileListModel::roleNames() const
 	roles[StartPressureRole] = "startPressure";
 	roles[EndPressureRole] = "endPressure";
 	roles[FirstGasRole] = "firstGas";
-	roles[CollapsedRole] = "collapsed";
 	roles[SelectedRole] = "selected";
 	return roles;
 }
