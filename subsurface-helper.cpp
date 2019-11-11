@@ -16,6 +16,7 @@
 #include "mobile-widgets/qmlmanager.h"
 #include "mobile-widgets/qmlprefs.h"
 #include "qt-models/divelistmodel.h"
+#include "qt-models/mobilelistmodel.h"
 #include "qt-models/gpslistmodel.h"
 #include "qt-models/messagehandlermodel.h"
 #include "profile-widget/qmlprofile.h"
@@ -103,6 +104,7 @@ void run_ui()
 	QQmlContext *ctxt = engine.rootContext();
 	ctxt->setContextProperty("diveModel", DiveListSortModel::instance());
 	ctxt->setContextProperty("diveTripModel", CollapsedDiveListSortModel::instance());
+	ctxt->setContextProperty("mobileListModel", MobileListModel::instance());
 	ctxt->setContextProperty("gpsModel", gpsSortModel);
 	ctxt->setContextProperty("vendorList", vendorList);
 	set_non_bt_addresses();
