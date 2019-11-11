@@ -7,6 +7,12 @@ MobileListModel::MobileListModel()
 	connectSignals();
 }
 
+MobileListModel *MobileListModel::instance()
+{
+	static MobileListModel self;
+	return &self;
+}
+
 void MobileListModel::connectSignals()
 {
 	DiveTripModelBase *source = DiveTripModelBase::instance();
@@ -55,7 +61,7 @@ int MobileListModel::mapRowFromSource(const QModelIndex &parent, int row) const
 
 QModelIndex MobileListModel::mapFromSource(const QModelIndex &idx) const
 {
-	return index(mapRowFromSource(idx.parent(), idx.row()), idx.column());
+	return createIndex(mapRowFromSource(idx.parent(), idx.row()), idx.column());
 }
 
 // We translate roles into columns. The source model will understand our roles.
@@ -75,6 +81,34 @@ QModelIndex MobileListModel::mapToSource(const QModelIndex &idx, int role) const
 
 	QModelIndex parent = source->index(expandedRow, 0);
 	return source->index(row - 1 - numSub, role, parent);
+}
+
+QModelIndex MobileListModel::index(int row, int column, const QModelIndex &parent) const
+{
+	if (!hasIndex(row, column, parent))
+		return QModelIndex();
+
+	return createIndex(row, column);
+}
+
+QModelIndex MobileListModel::parent(const QModelIndex &index) const
+{
+	// This is a flat model - there is no index
+	return QModelIndex();
+}
+
+int MobileListModel::rowCount(const QModelIndex &parent) const
+{
+	if (parent.isValid())
+		return 0; // There is no parent
+	DiveTripModelBase *source = DiveTripModelBase::instance();
+	return source->rowCount() + numSubItems();
+}
+
+int MobileListModel::columnCount(const QModelIndex &parent) const
+{
+	DiveTripModelBase *source = DiveTripModelBase::instance();
+	return source->columnCount(parent);
 }
 
 QVariant MobileListModel::data(const QModelIndex &index, int role) const
@@ -228,8 +262,8 @@ void MobileListModel::changed(const QModelIndex &topLeft, const QModelIndex &bot
 	// We have to split this in two parts: before and including the expanded row
 	// and everything after the expanded row.
 	int numSub = numSubItems();
-	dataChanged(topLeft, index(expandedRow, bottomRight.column()), roles);
-	dataChanged(index(expandedRow + 1 + numSub, topLeft.column()), index(bottomRight.row() + 1 + numSub, bottomRight.column()), roles);
+	dataChanged(topLeft, createIndex(expandedRow, bottomRight.column()), roles);
+	dataChanged(createIndex(expandedRow + 1 + numSub, topLeft.column()), createIndex(bottomRight.row() + 1 + numSub, bottomRight.column()), roles);
 }
 
 void MobileListModel::unexpand()
