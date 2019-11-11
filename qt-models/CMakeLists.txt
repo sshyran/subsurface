@@ -11,6 +11,10 @@ set(SUBSURFACE_GENERIC_MODELS_LIB_SRCS
 	divelocationmodel.h
 	diveplotdatamodel.cpp
 	diveplotdatamodel.h
+	divetripmodel.cpp
+	divetripmodel.h
+	filtermodels.cpp
+	filtermodels.h
 	maplocationmodel.cpp
 	maplocationmodel.h
 )
@@ -31,10 +35,6 @@ set(SUBSURFACE_DESKTOP_MODELS_LIB_SRCS
 	diveplannermodel.h
 	divesiteimportmodel.cpp
 	divesiteimportmodel.h
-	divetripmodel.cpp
-	divetripmodel.h
-	filtermodels.cpp
-	filtermodels.h
 	models.cpp
 	models.h
 	tankinfomodel.cpp
@@ -57,6 +57,8 @@ set(SUBSURFACE_MOBILE_MODELS_LIB_SRCS
 	gpslistmodel.h
 	messagehandlermodel.cpp
 	messagehandlermodel.h
+	mobilelistmodel.cpp
+	mobilelistmodel.h
 )
 
 if (SUBSURFACE_TARGET_EXECUTABLE MATCHES "DesktopExecutable")
