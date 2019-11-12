@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 #include "mobilelistmodel.h"
+#include "filtermodels.h"
 
 MobileListModel::MobileListModel()
 	: expandedRow(-1)
@@ -35,6 +36,8 @@ QHash<int, QByteArray> MobileListModel::roleNames() const
 	roles[DiveDateRole] = "date";
 	roles[TripIdRole] = "tripId";
 	roles[TripNrDivesRole] = "tripNrDives";
+	roles[TripShortDateRole] = "tripShortDate";
+	roles[TripTitleRole] = "tripTitle";
 	roles[DateTimeRole] = "dateTime";
 	roles[IdRole] = "id";
 	roles[NumberRole] = "number";
@@ -142,6 +145,11 @@ int MobileListModel::rowCount(const QModelIndex &parent) const
 		return 0; // There is no parent
 	DiveTripModelBase *source = DiveTripModelBase::instance();
 	return source->rowCount() + numSubItems();
+}
+
+int MobileListModel::shown()
+{
+	return MultiFilterSortModel::instance()->divesDisplayed;
 }
 
 int MobileListModel::columnCount(const QModelIndex &parent) const
