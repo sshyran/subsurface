@@ -48,9 +48,9 @@ public:
 	MobileListModel();
 	static MobileListModel *instance();
 	void resetModel(DiveTripModelBase::Layout layout);	// Switch between tree and list view
-	void expand(const QModelIndex &index);
+	void expand(int row);
 	void unexpand();
-	void flip(const QModelIndex &index);
+	void toggle(int row);
 	Q_INVOKABLE int shown(); // number dives that are accepted by the filter
 private:
 	void connectSignals();

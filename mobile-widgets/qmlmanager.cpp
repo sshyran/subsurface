@@ -25,6 +25,7 @@
 #include "qt-models/completionmodels.h"
 #include "qt-models/messagehandlermodel.h"
 #include "qt-models/tankinfomodel.h"
+#include "qt-models/mobilelistmodel.h"
 #include "core/device.h"
 #include "core/errorhelper.h"
 #include "core/file.h"
@@ -346,6 +347,11 @@ void QMLManager::openLocalThenRemote(QString url)
 		tryRetrieveDataFromBackend();
 	}
 	updateAllGlobalLists();
+}
+
+void QMLManager::toggle(int row)
+{
+	MobileListModel::instance()->toggle(row);
 }
 
 void QMLManager::updateSiteList()

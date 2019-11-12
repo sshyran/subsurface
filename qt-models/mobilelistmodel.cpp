@@ -109,20 +109,20 @@ QModelIndex MobileListModel::mapFromSource(const QModelIndex &idx) const
 
 QModelIndex MobileListModel::mapToSource(const QModelIndex &idx) const
 {
-	if (idx.isValid())
+	if (!idx.isValid())
 		return idx;
 	DiveTripModelBase *source = DiveTripModelBase::instance();
 	int row = idx.row();
 	int col = idx.column();
-	if (row <= expandedRow)
+	if (expandedRow < 0 || row <= expandedRow)
 		return source->index(row, col);
 
 	int numSub = numSubItems();
-	if (row > expandedRow + 1 + numSub)
+	if (row > expandedRow + numSub)
 		return source->index(row - 1 - numSub, col);
 
 	QModelIndex parent = source->index(expandedRow, 0);
-	return source->index(row - 1 - numSub, col, parent);
+	return source->index(row - expandedRow - 1, col, parent);
 }
 
 QModelIndex MobileListModel::index(int row, int column, const QModelIndex &parent) const
@@ -258,12 +258,11 @@ void MobileListModel::doneMove(const QModelIndex &parent, int first, int last, c
 	}
 }
 
-void MobileListModel::expand(const QModelIndex &index)
+void MobileListModel::expand(int row)
 {
 	// First, let us treat the trivial cases: expand an invalid row
 	// or the row is already expanded.
-	int row = index.row();
-	if (!index.isValid()) {
+	if (row < 0) {
 		unexpand();
 		return;
 	}
@@ -271,10 +270,10 @@ void MobileListModel::expand(const QModelIndex &index)
 		return;
 
 	// Collapse the old expanded row, if any.
-	if (expandedRow > 0) {
+	if (expandedRow >= 0) {
 		int numSub = numSubItems();
 		if (row > expandedRow) {
-			if (expandedRow + 1 + numSub > row) {
+			if (row <= expandedRow + numSub) {
 				qWarning("MobileListModel::expand(): trying to expand row in trip");
 				return;
 			}
@@ -329,10 +328,12 @@ void MobileListModel::unexpand()
 	endRemoveRows();
 }
 
-void MobileListModel::flip(const QModelIndex &index)
+void MobileListModel::toggle(int row)
 {
-	if (index.row() == expandedRow)
+	if (row < 0)
+		return;
+	else if (row == expandedRow)
 		unexpand();
 	else
-		expand(index);
+		expand(row);
 }
