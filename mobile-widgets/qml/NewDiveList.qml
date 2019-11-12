@@ -59,6 +59,7 @@ Kirigami.ScrollablePage {
 			onClicked: {
 				if (model.isTrip) {
 					manager.appendTextToLog("clicked on trip " + model.tripTitle)
+					manager.toggle(model.row);
 					// toggle expand (backend to deal with unexpand other trip)
 				} else {
 					manager.appendTextToLog("clicked on dive")
