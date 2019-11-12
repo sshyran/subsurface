@@ -12,6 +12,8 @@ public:
 		DiveDateRole,
 		TripIdRole,
 		TripNrDivesRole,
+		TripShortDateRole,
+		TripTitleRole,
 		DateTimeRole,
 		IdRole,
 		NumberRole,
@@ -49,6 +51,7 @@ public:
 	void expand(const QModelIndex &index);
 	void unexpand();
 	void flip(const QModelIndex &index);
+	Q_INVOKABLE int shown(); // number dives that are accepted by the filter
 private:
 	void connectSignals();
 	int numSubItems() const;
