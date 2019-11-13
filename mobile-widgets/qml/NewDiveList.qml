@@ -41,16 +41,14 @@ Kirigami.ScrollablePage {
 			// this allows us to access properties of the currentItem from outside
 			property variant myData: model
 			id: diveOrTripDelegateItem
-			leftPadding: 0
-			topPadding: 0
+			padding: 0
 			supportsMouseEvents: true
 			checked: !model.isTrip && model.selected
 			anchors {
 				left: parent.left
 				right: parent.right
 			}
-
-			height: Kirigami.Units.gridUnit * 2 + Kirigami.Units.smallSpacing
+			height: 2 * (Kirigami.Units.gridUnit + Kirigami.Units.smallSpacing) // delegateInnerItem.height
 			backgroundColor: checked ? subsurfaceTheme.primaryColor : subsurfaceTheme.backgroundColor
 			activeBackgroundColor: subsurfaceTheme.primaryColor
 			textColor: checked ? subsurfaceTheme.primaryTextColor : subsurfaceTheme.textColor
@@ -76,11 +74,12 @@ Kirigami.ScrollablePage {
 
 			// first we look at the trip
 			Item {
+				id: delegateInnerItem
 				width: page.width
 				height: childrenRect.height
 				Rectangle {
 					id: headingBackground
-					height: sectionText.height + Kirigami.Units.gridUnit
+					height: visible ? 2 * Kirigami.Units.gridUnit + 1.5 * Kirigami.Units.smallSpacing : 0
 					anchors {
 						left: parent.left
 						right: parent.right
@@ -89,8 +88,8 @@ Kirigami.ScrollablePage {
 					visible: isTrip
 					Rectangle {
 						id: dateBox
-						height: parent.height - Kirigami.Units.smallSpacing
-						width: 2.5 * Kirigami.Units.gridUnit * PrefDisplay.mobile_scale
+						height: headingBackground.height - Kirigami.Units.smallSpacing
+						width: 2.5 * Kirigami.Units.gridUnit
 						color: subsurfaceTheme.primaryColor
 						radius: Kirigami.Units.smallSpacing * 2
 						antialiasing: true
@@ -107,6 +106,7 @@ Kirigami.ScrollablePage {
 							lineHeightMode: Text.FixedHeight
 							lineHeight: Kirigami.Units.gridUnit *.9
 							horizontalAlignment: Text.AlignHCenter
+							height: contentHeight
 							anchors {
 								horizontalCenter: parent.horizontalCenter
 								verticalCenter: parent.verticalCenter
@@ -116,14 +116,13 @@ Kirigami.ScrollablePage {
 					Controls.Label {
 						id: sectionText
 						text: visible ? tripTitle : ""
-						wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+						elide: Text.ElideRight
 						visible: headingBackground.visible
 						font.weight: Font.Bold
 						font.pointSize: subsurfaceTheme.regularPointSize
 						anchors {
-							top: parent.top
+							verticalCenter: parent.verticalCenter
 							left: dateBox.right
-							topMargin: Math.max(2, Kirigami.Units.gridUnit / 2)
 							leftMargin: horizontalPadding * 2
 							right: parent.right
 						}
@@ -131,14 +130,20 @@ Kirigami.ScrollablePage {
 					}
 				}
 				Rectangle {
-					height: isTrip ? 1 : 0
-					width: parent.width
-					anchors.top: headingBackground.bottom
+					id: headingBottomLine
+					height: visible ? 1 : 0
+					visible: headingBackground.visible
+					anchors {
+						left: parent.left
+						right: parent.right
+						top: headingBackground.bottom
+					}
 					color: "#B2B2B2"
 				}
+
 				Rectangle {
 					id: diveBackground
-					height: diveListEntry.height + 2 * Kirigami.Units.smallSpacing
+					height: visible ? diveListEntry.height + 2 * Kirigami.Units.smallSpacing : 0
 					anchors {
 						left: parent.left
 						right: parent.right
@@ -162,21 +167,24 @@ Kirigami.ScrollablePage {
 						}
 						Item {
 							id: diveListEntry
-							width: parent.width
-							height: Math.ceil(childrenRect.height + Kirigami.Units.smallSpacing)
-							anchors.left: leftBarDive.right
+							height: visible ? Math.ceil(childrenRect.height ) : 0
+							anchors {
+								right: parent.right
+								left: leftBarDive.right
+								verticalCenter: parent.verticalCenter
+							}
 							Controls.Label {
 								id: locationText
 								text: (undefined !== location && "" != location) ? location : qsTr("<unnamed dive site>")
-								font.weight: Font.Bold
-								font.pointSize: subsurfaceTheme.regularPointSize
+								font.weight: Font.Medium
+								font.pointSize: subsurfaceTheme.smallPointSize
 								elide: Text.ElideRight
 								maximumLineCount: 1 // needed for elide to work at all
 								color: textColor
 								anchors {
 									left: parent.left
 									leftMargin: horizontalPadding * 2
-									topMargin: Kirigami.Units.smallSpacing
+									topMargin: Kirigami.Units.smallSpacing / 2
 									top: parent.top
 									right: parent.right
 								}
@@ -185,8 +193,7 @@ Kirigami.ScrollablePage {
 								anchors {
 									left: locationText.left
 									top: locationText.bottom
-									topMargin: Kirigami.Units.smallSpacing
-									bottom: numberText.bottom
+									topMargin: Kirigami.Units.smallSpacing / 2
 								}
 
 								Controls.Label {
@@ -216,14 +223,15 @@ Kirigami.ScrollablePage {
 								color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : secondaryTextColor
 								anchors {
 									right: parent.right
-									rightMargin: horizontalPadding
+									rightMargin: Kirigami.Units.smallSpacing
 									top: locationText.bottom
-									topMargin: Kirigami.Units.smallSpacing
+									topMargin: Kirigami.Units.smallSpacing / 2
 								}
 							}
 						}
 					}
 				}
+
 			}
 		}
 	}
