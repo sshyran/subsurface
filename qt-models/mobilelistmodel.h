@@ -54,6 +54,7 @@ public:
 	Q_INVOKABLE int shown(); // number dives that are accepted by the filter
 private:
 	void connectSignals();
+	QModelIndex sourceIndex(int row, int col, int parentRow = -1) const;
 	int numSubItems() const;
 	bool isExpandedRow(const QModelIndex &parent) const;
 	int mapRowFromSource(const QModelIndex &parent, int row) const;

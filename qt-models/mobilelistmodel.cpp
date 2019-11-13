@@ -70,12 +70,30 @@ QHash<int, QByteArray> MobileListModel::roleNames() const
 	return roles;
 }
 
+// We want to show the newest dives first. Therefore, we have to invert
+// the indexes with respect to the source model. To avoid mental gymnastics
+// in the rest of the code, we do this right before sending to the
+// source model and just after recieving from the source model, respectively.
+QModelIndex MobileListModel::sourceIndex(int row, int col, int parentRow) const
+{
+	if (row < 0 || col < 0)
+		return QModelIndex();
+	DiveTripModelBase *source = DiveTripModelBase::instance();
+	QModelIndex parent;
+	if (parentRow >= 0) {
+		int numTop = source->rowCount(QModelIndex());
+		parent = source->index(numTop - 1 - parentRow, 0);
+	}
+	int numItems = source->rowCount(parent);
+	return source->index(numItems - 1 - row, col, parent);
+}
+
 int MobileListModel::numSubItems() const
 {
 	if (expandedRow < 0)
 		return 0;
 	DiveTripModelBase *source = DiveTripModelBase::instance();
-	return source->rowCount(source->index(expandedRow, 0));
+	return source->rowCount(sourceIndex(expandedRow, 0));
 }
 
 bool MobileListModel::isExpandedRow(const QModelIndex &parent) const
@@ -86,14 +104,25 @@ bool MobileListModel::isExpandedRow(const QModelIndex &parent) const
 
 int MobileListModel::mapRowFromSource(const QModelIndex &parent, int row) const
 {
+	if (row < 0)
+		return -1;
+
+	// We get rows from the source model in the wrong direction.
+	// First, invert them.
+	DiveTripModelBase *source = DiveTripModelBase::instance();
+	int numItems = source->rowCount(parent);
+	row = numItems - 1 - row;
+
 	if (!parent.isValid()) {
 		// This is a top-level item. If it is after the expanded row,
 		// we have to add the items of the expanded row.
 		return expandedRow >= 0 && row > expandedRow ? row + numSubItems() : row;
 	} else {
 		// This is a subitem. The function must only be called on
-		// expanded subitems.
+		// expanded subitems. Remember that we have to invert the direction!
 		int parentRow = parent.row();
+		int numItems = source->rowCount(QModelIndex());
+		parentRow = numItems - 1 - parentRow;
 		if (parentRow != expandedRow) {
 			qWarning("MobileListModel::mapRowFromSource() called on non-extended row");
 			return -1;
@@ -111,18 +140,16 @@ QModelIndex MobileListModel::mapToSource(const QModelIndex &idx) const
 {
 	if (!idx.isValid())
 		return idx;
-	DiveTripModelBase *source = DiveTripModelBase::instance();
 	int row = idx.row();
 	int col = idx.column();
 	if (expandedRow < 0 || row <= expandedRow)
-		return source->index(row, col);
+		return sourceIndex(row, col);
 
 	int numSub = numSubItems();
 	if (row > expandedRow + numSub)
-		return source->index(row - 1 - numSub, col);
+		return sourceIndex(row - 1 - numSub, col);
 
-	QModelIndex parent = source->index(expandedRow, 0);
-	return source->index(row - expandedRow - 1, col, parent);
+	return sourceIndex(row - expandedRow - 1, col, expandedRow);
 }
 
 QModelIndex MobileListModel::index(int row, int column, const QModelIndex &parent) const
@@ -284,7 +311,7 @@ void MobileListModel::expand(int row)
 
 	DiveTripModelBase *source = DiveTripModelBase::instance();
 	int first = row + 1;
-	int last = first + source->rowCount(source->index(row, 0)) - 1;
+	int last = first + source->rowCount(sourceIndex(row, 0)) - 1;
 	if (last < first) {
 		// Amazingly, Qt's model API doesn't properly handle empty ranges!
 		expandedRow = row;
