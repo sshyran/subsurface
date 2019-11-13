@@ -60,7 +60,6 @@ Kirigami.ScrollablePage {
 				if (model.isTrip) {
 					manager.appendTextToLog("clicked on trip " + model.tripTitle)
 					manager.toggle(model.row);
-					// toggle expand (backend to deal with unexpand other trip)
 				} else {
 					manager.appendTextToLog("clicked on dive")
 					if (detailsWindow.state === "view") {
@@ -101,7 +100,8 @@ Kirigami.ScrollablePage {
 							leftMargin: Kirigami.Units.smallSpacing
 						}
 						Controls.Label {
-							text: tripShortDate
+							visible: headingBackground.visible
+							text: visible ? tripShortDate : ""
 							color: subsurfaceTheme.primaryTextColor
 							font.pointSize: subsurfaceTheme.smallPointSize
 							lineHeightMode: Text.FixedHeight
@@ -115,9 +115,9 @@ Kirigami.ScrollablePage {
 					}
 					Controls.Label {
 						id: sectionText
-						text: tripTitle
+						text: visible ? tripTitle : ""
 						wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-						visible: text !== ""
+						visible: headingBackground.visible
 						font.weight: Font.Bold
 						font.pointSize: subsurfaceTheme.regularPointSize
 						anchors {
@@ -131,10 +131,98 @@ Kirigami.ScrollablePage {
 					}
 				}
 				Rectangle {
-					height: section == "" ? 0 : 1
+					height: isTrip ? 1 : 0
 					width: parent.width
 					anchors.top: headingBackground.bottom
 					color: "#B2B2B2"
+				}
+				Rectangle {
+					id: diveBackground
+					height: diveListEntry.height + 2 * Kirigami.Units.smallSpacing
+					anchors {
+						left: parent.left
+						right: parent.right
+					}
+					color: subsurfaceTheme.backgroundColor
+					visible: !isTrip
+					Item {
+						anchors.fill: parent
+						Rectangle {
+							id: leftBarDive
+							width: Kirigami.Units.smallSpacing
+							height: diveListEntry.height * 0.8
+							color: subsurfaceTheme.lightPrimaryColor
+							anchors {
+								left: parent.left
+								top: parent.top
+								leftMargin: Kirigami.Units.smallSpacing
+								topMargin: Kirigami.Units.smallSpacing * 2
+								bottomMargin: Kirigami.Units.smallSpacing * 2
+							}
+						}
+						Item {
+							id: diveListEntry
+							width: parent.width
+							height: Math.ceil(childrenRect.height + Kirigami.Units.smallSpacing)
+							anchors.left: leftBarDive.right
+							Controls.Label {
+								id: locationText
+								text: (undefined !== location && "" != location) ? location : qsTr("<unnamed dive site>")
+								font.weight: Font.Bold
+								font.pointSize: subsurfaceTheme.regularPointSize
+								elide: Text.ElideRight
+								maximumLineCount: 1 // needed for elide to work at all
+								color: textColor
+								anchors {
+									left: parent.left
+									leftMargin: horizontalPadding * 2
+									topMargin: Kirigami.Units.smallSpacing
+									top: parent.top
+									right: parent.right
+								}
+							}
+							Row {
+								anchors {
+									left: locationText.left
+									top: locationText.bottom
+									topMargin: Kirigami.Units.smallSpacing
+									bottom: numberText.bottom
+								}
+
+								Controls.Label {
+									id: dateLabel
+									text: (undefined !== dateTime) ? dateTime : ""
+									width: Math.max(locationText.width * 0.45, paintedWidth) // helps vertical alignment throughout listview
+									font.pointSize: subsurfaceTheme.smallPointSize
+									color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : secondaryTextColor
+								}
+								// spacer, just in case
+								Controls.Label {
+									text: " "
+									width: Kirigami.Units.largeSpacing
+								}
+								// let's try to show the depth / duration very compact
+								Controls.Label {
+									text: (undefined !== depthDuration) ? depthDuration : ""
+									width: Math.max(Kirigami.Units.gridUnit * 3, paintedWidth) // helps vertical alignment throughout listview
+									font.pointSize: subsurfaceTheme.smallPointSize
+									color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : secondaryTextColor
+								}
+							}
+							Controls.Label {
+								id: numberText
+								text: "#" + number
+								font.pointSize: subsurfaceTheme.smallPointSize
+								color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : secondaryTextColor
+								anchors {
+									right: parent.right
+									rightMargin: horizontalPadding
+									top: locationText.bottom
+									topMargin: Kirigami.Units.smallSpacing
+								}
+							}
+						}
+					}
 				}
 			}
 		}
