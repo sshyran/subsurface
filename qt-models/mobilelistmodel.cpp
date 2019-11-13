@@ -147,7 +147,7 @@ QModelIndex MobileListModel::mapToSource(const QModelIndex &idx) const
 
 	int numSub = numSubItems();
 	if (row > expandedRow + numSub)
-		return sourceIndex(row - 1 - numSub, col);
+		return sourceIndex(row - numSub, col);
 
 	return sourceIndex(row - expandedRow - 1, col, expandedRow);
 }
