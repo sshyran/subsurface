@@ -103,7 +103,7 @@ Item {
 			visible: rootItem.showPin
 			SsrfButton {
 				id: registerpin
-				text: qsTr("Register") 
+				text: qsTr("Register")
 				onClicked: {
 					saveCredentials()
 				}
