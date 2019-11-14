@@ -99,7 +99,41 @@ int MobileListModel::numSubItems() const
 bool MobileListModel::isExpandedRow(const QModelIndex &parent) const
 {
 	// The main list (parent is invalid) is always expanded.
-	return !parent.isValid() || parent.row() == expandedRow;
+	if (!parent.isValid())
+		return true;
+
+	// A subitem (parent of parent is invalid) is never expanded.
+	if (parent.parent().isValid())
+		return false;
+
+	return parent.row() == expandedRow;
+}
+
+int MobileListModel::invertRow(const QModelIndex &parent, int row) const
+{
+	DiveTripModelBase *source = DiveTripModelBase::instance();
+	int numItems = source->rowCount(parent);
+	return numItems - 1 - row;
+}
+
+int MobileListModel::mapRowFromSourceTopLevel(int row) const
+{
+	// This is a top-level item. If it is after the expanded row,
+	// we have to add the items of the expanded row.
+	row = invertRow(QModelIndex(), row);
+	return expandedRow >= 0 && row > expandedRow ? row + numSubItems() : row;
+}
+
+// The parentRow parameter is the row of the expanded trip converted into
+// local "coordinates" as a premature optimization.
+int MobileListModel::mapRowFromSourceTrip(const QModelIndex &parent, int parentRow, int row) const
+{
+	row = invertRow(parent, row);
+	if (parentRow != expandedRow) {
+		qWarning("MobileListModel::mapRowFromSourceTrip() called on non-extended row");
+		return -1;
+	}
+	return expandedRow + 1 + row; // expandedRow + 1 is the row of the first subitem
 }
 
 int MobileListModel::mapRowFromSource(const QModelIndex &parent, int row) const
@@ -107,27 +141,25 @@ int MobileListModel::mapRowFromSource(const QModelIndex &parent, int row) const
 	if (row < 0)
 		return -1;
 
-	// We get rows from the source model in the wrong direction.
-	// First, invert them.
-	DiveTripModelBase *source = DiveTripModelBase::instance();
-	int numItems = source->rowCount(parent);
-	row = numItems - 1 - row;
-
 	if (!parent.isValid()) {
-		// This is a top-level item. If it is after the expanded row,
-		// we have to add the items of the expanded row.
-		return expandedRow >= 0 && row > expandedRow ? row + numSubItems() : row;
+		return mapRowFromSourceTopLevel(row);
 	} else {
-		// This is a subitem. The function must only be called on
-		// expanded subitems. Remember that we have to invert the direction!
-		int parentRow = parent.row();
-		int numItems = source->rowCount(QModelIndex());
-		parentRow = numItems - 1 - parentRow;
-		if (parentRow != expandedRow) {
-			qWarning("MobileListModel::mapRowFromSource() called on non-extended row");
-			return -1;
-		}
-		return expandedRow + 1 + row; // expandedRow + 1 is the row of the first subitem
+		int parentRow = invertRow(QModelIndex(), parent.row());
+		return mapRowFromSourceTrip(parent, parentRow, row);
+	}
+}
+
+MobileListModel::IndexRange MobileListModel::mapRangeFromSource(const QModelIndex &parent, int first, int last) const
+{
+	int num = last - first;
+	// Since we invert the direction, the last will be the first.
+	if (!parent.isValid()) {
+		first = mapRowFromSourceTopLevel(last);
+		return { QModelIndex(), first, first + num };
+	} else {
+		int parentRow = invertRow(QModelIndex(), parent.row());
+		first = mapRowFromSourceTrip(parent, parentRow, last);
+		return { createIndex(parentRow, 0), first, first + num };
 	}
 }
 
@@ -204,19 +236,21 @@ void MobileListModel::resetModel(DiveTripModelBase::Layout layout)
 
 void MobileListModel::prepareRemove(const QModelIndex &parent, int first, int last)
 {
-	if (isExpandedRow(parent))
-		beginRemoveRows(QModelIndex(), mapRowFromSource(parent, first), mapRowFromSource(parent, last));
+	IndexRange range = mapRangeFromSource(parent, first, last);
+	if (isExpandedRow(range.parent))
+		beginRemoveRows(QModelIndex(), range.first, range.last);
 }
 
 void MobileListModel::doneRemove(const QModelIndex &parent, int first, int last)
 {
-	if (isExpandedRow(parent)) {
+	IndexRange range = mapRangeFromSource(parent, first, last);
+	if (isExpandedRow(range.parent)) {
 		// Check if we have to move or remove the expanded item
 		if (!parent.isValid() && expandedRow >= 0) {
-			if (first <= expandedRow && last >= expandedRow)
+			if (range.first <= expandedRow && range.last >= expandedRow)
 				expandedRow = -1;
-			else if (first <= expandedRow)
-				expandedRow -= last - first + 1;
+			else if (range.first <= expandedRow)
+				expandedRow -= range.last - range.first + 1;
 		}
 		endRemoveRows();
 	}
@@ -224,17 +258,17 @@ void MobileListModel::doneRemove(const QModelIndex &parent, int first, int last)
 
 void MobileListModel::prepareInsert(const QModelIndex &parent, int first, int last)
 {
-	if (isExpandedRow(parent)) {
-		int localRow = mapRowFromSource(parent, first);
-		beginInsertRows(QModelIndex(), localRow, localRow + last - first);
-	}
+	IndexRange range = mapRangeFromSource(parent, first, last);
+	if (isExpandedRow(range.parent))
+		beginInsertRows(QModelIndex(), range.first, range.last);
 }
 
 void MobileListModel::doneInsert(const QModelIndex &parent, int first, int last)
 {
-	if (isExpandedRow(parent)) {
+	IndexRange range = mapRangeFromSource(parent, first, last);
+	if (isExpandedRow(range.parent)) {
 		// Check if we have to move the expanded item
-		if (!parent.isValid() && expandedRow >= 0 && first <= expandedRow)
+		if (!parent.isValid() && expandedRow >= 0 && range.first <= expandedRow)
 			expandedRow += last - first + 1;
 		endInsertRows();
 	}
@@ -244,43 +278,43 @@ void MobileListModel::doneInsert(const QModelIndex &parent, int first, int last)
 // Some of them degrade to removing or inserting rows.
 void MobileListModel::prepareMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow)
 {
-	if (!isExpandedRow(parent) && !isExpandedRow(dest))
+	IndexRange range = mapRangeFromSource(parent, first, last);
+	IndexRange rangeDest = mapRangeFromSource(dest, destRow, destRow);
+	if (!isExpandedRow(range.parent) && !isExpandedRow(rangeDest.parent))
 		return;
-	if (isExpandedRow(parent) && !isExpandedRow(dest))
+	if (isExpandedRow(range.parent) && !isExpandedRow(rangeDest.parent))
 		return prepareRemove(parent, first, last);
-	if (!isExpandedRow(parent) && isExpandedRow(dest))
+	if (!isExpandedRow(range.parent) && isExpandedRow(dest))
 		return prepareInsert(parent, first, last);
-	beginMoveRows(QModelIndex(), mapRowFromSource(parent, first), mapRowFromSource(parent, last),
-		      QModelIndex(), mapRowFromSource(dest, destRow));
+	beginMoveRows(QModelIndex(), range.first, range.last, QModelIndex(), rangeDest.first);
 }
 
 void MobileListModel::doneMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow)
 {
-	if (!isExpandedRow(parent) && !isExpandedRow(dest))
+	IndexRange range = mapRangeFromSource(parent, first, last);
+	IndexRange rangeDest = mapRangeFromSource(dest, destRow, destRow);
+	if (!isExpandedRow(range.parent) && !isExpandedRow(rangeDest.parent))
 		return;
-	if (isExpandedRow(parent) && !isExpandedRow(dest))
+	if (isExpandedRow(range.parent) && !isExpandedRow(rangeDest.parent))
 		return doneRemove(parent, first, last);
-	if (!isExpandedRow(parent) && isExpandedRow(dest))
+	if (!isExpandedRow(range.parent) && isExpandedRow(dest))
 		return doneInsert(parent, first, last);
-	int localFirst = mapRowFromSource(parent, first);
-	int localLast = mapRowFromSource(parent, last);
-	int localDest = mapRowFromSource(dest, destRow);
-	if (expandedRow >= 0 && (localDest < localFirst || localDest > localLast + 1)) {
-		if (!parent.isValid() && first <= expandedRow && last >= expandedRow) {
+	if (expandedRow >= 0 && (rangeDest.first < range.first || rangeDest.first > range.last + 1)) {
+		if (!parent.isValid() && range.first <= expandedRow && range.last >= expandedRow) {
 			// Case 1: the expanded row is in the moved range
 			// Since we don't support sub-trips, this means that we can't move into another trip
 			if (dest.isValid())
 				qWarning("MobileListModel::doneMove(): moving trips into a subtrip");
-			else if (destRow <= first)
-				expandedRow -=  first - destRow;
-			else if (destRow > last + 1)
-				expandedRow +=  destRow - (last + 1);
-		} else if (localFirst > expandedRow && localDest <= expandedRow) {
+			else if (rangeDest.first <= range.first)
+				expandedRow -=  range.first - rangeDest.first;
+			else if (rangeDest.first > range.last + 1)
+				expandedRow +=  rangeDest.first - (range.last + 1);
+		} else if (range.first > expandedRow && rangeDest.first <= expandedRow) {
 			// Case 2: moving things from behind to before the expanded row
-			expandedRow += localLast - localFirst + 1;
-		} else if (localFirst < expandedRow && localDest > expandedRow)  {
+			expandedRow += range.last - range.first + 1;
+		} else if (range.first < expandedRow && rangeDest.first > expandedRow)  {
 			// Case 3: moving things from before to behind the expanded row
-			expandedRow -= localLast - localFirst + 1;
+			expandedRow -= range.last - range.first + 1;
 		}
 	}
 }
