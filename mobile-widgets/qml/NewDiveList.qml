@@ -48,7 +48,7 @@ Kirigami.ScrollablePage {
 				left: parent.left
 				right: parent.right
 			}
-			height: 2 * (Kirigami.Units.gridUnit + Kirigami.Units.smallSpacing) // delegateInnerItem.height
+			height: (isTrip ? 9 : 10) * Kirigami.Units.smallSpacing // delegateInnerItem.height
 			backgroundColor: checked ? subsurfaceTheme.primaryColor : subsurfaceTheme.backgroundColor
 			activeBackgroundColor: subsurfaceTheme.primaryColor
 			textColor: checked ? subsurfaceTheme.primaryTextColor : subsurfaceTheme.textColor
@@ -79,8 +79,9 @@ Kirigami.ScrollablePage {
 				height: childrenRect.height
 				Rectangle {
 					id: headingBackground
-					height: visible ? 2 * Kirigami.Units.gridUnit + 1.5 * Kirigami.Units.smallSpacing : 0
+					height: visible ? 8 * Kirigami.Units.smallSpacing : 0
 					anchors {
+						topMargin: Kirigami.Units.smallSpacing / 2
 						left: parent.left
 						right: parent.right
 					}
@@ -88,8 +89,8 @@ Kirigami.ScrollablePage {
 					visible: isTrip
 					Rectangle {
 						id: dateBox
-						height: headingBackground.height - Kirigami.Units.smallSpacing
-						width: 2.5 * Kirigami.Units.gridUnit
+						height: 1.8 * Kirigami.Units.gridUnit
+						width: 2.2 * Kirigami.Units.gridUnit
 						color: subsurfaceTheme.primaryColor
 						radius: Kirigami.Units.smallSpacing * 2
 						antialiasing: true
@@ -102,9 +103,9 @@ Kirigami.ScrollablePage {
 							visible: headingBackground.visible
 							text: visible ? tripShortDate : ""
 							color: subsurfaceTheme.primaryTextColor
-							font.pointSize: subsurfaceTheme.smallPointSize
+							font.pointSize: subsurfaceTheme.smallPointSize * 0.8
 							lineHeightMode: Text.FixedHeight
-							lineHeight: Kirigami.Units.gridUnit *.9
+							lineHeight: Kirigami.Units.gridUnit *.8
 							horizontalAlignment: Text.AlignHCenter
 							height: contentHeight
 							anchors {
@@ -118,7 +119,7 @@ Kirigami.ScrollablePage {
 						text: visible ? tripTitle : ""
 						elide: Text.ElideRight
 						visible: headingBackground.visible
-						font.weight: Font.Bold
+						font.weight: Font.Medium
 						font.pointSize: subsurfaceTheme.regularPointSize
 						anchors {
 							verticalCenter: parent.verticalCenter
@@ -131,7 +132,7 @@ Kirigami.ScrollablePage {
 				}
 				Rectangle {
 					id: headingBottomLine
-					height: visible ? 1 : 0
+					height: visible ? Kirigami.Units.smallSpacing : 0
 					visible: headingBackground.visible
 					anchors {
 						left: parent.left
@@ -143,7 +144,7 @@ Kirigami.ScrollablePage {
 
 				Rectangle {
 					id: diveBackground
-					height: visible ? diveListEntry.height + 2 * Kirigami.Units.smallSpacing : 0
+					height: visible ? diveListEntry.height + Kirigami.Units.smallSpacing : 0
 					anchors {
 						left: parent.left
 						right: parent.right
