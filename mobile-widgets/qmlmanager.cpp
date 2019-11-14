@@ -149,7 +149,8 @@ QMLManager::QMLManager() : m_locationServiceEnabled(false),
 	m_selectedDiveTimestamp(0),
 	alreadySaving(false),
 	m_pluggedInDeviceName(""),
-	m_showNonDiveComputers(false)
+	m_showNonDiveComputers(false),
+	undoAction(Command::undoAction(this))
 {
 	LOG_STP("qmlmgr starting");
 	m_instance = this;
@@ -1385,24 +1386,10 @@ void QMLManager::saveChangesCloud(bool forceRemoteSync)
 	git_local_only = glo;
 }
 
-bool QMLManager::undoDelete(int id)
+bool QMLManager::undoDelete(int)
 {
-	if (!deletedDive || deletedDive->id != id) {
-		appendTextToLog("Trying to undo delete but can't find the deleted dive");
-		return false;
-	}
-	if (deletedTrip)
-		insert_trip(deletedTrip, &trip_table);
-	if (deletedDive->divetrip) {
-		struct dive_trip *trip = deletedDive->divetrip;
-		deletedDive->divetrip = NULL;
-		add_dive_to_trip(deletedDive, trip);
-	}
-	record_dive(deletedDive);
-	DiveListModel::instance()->insertDive(get_idx_by_uniq_id(deletedDive->id));
+	undoAction->activate(QAction::Trigger);
 	changesNeedSaving();
-	deletedDive = NULL;
-	deletedTrip = NULL;
 	return true;
 }
 
