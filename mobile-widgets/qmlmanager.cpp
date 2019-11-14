@@ -44,6 +44,7 @@
 #include "core/settings/qPrefPartialPressureGas.h"
 #include "core/settings/qPrefUnit.h"
 #include "core/trip.h"
+#include "commands/command.h"
 
 QMLManager *QMLManager::m_instance = NULL;
 bool noCloudToCloud = false;
@@ -1430,28 +1431,7 @@ void QMLManager::deleteDive(int id)
 		appendTextToLog("trying to delete non-existing dive");
 		return;
 	}
-	// create the storage for the deleted dive and trip (if applicable)
-	if (!deletedDive)
-		deletedDive = alloc_dive();
-	copy_dive(d, deletedDive);
-	if (!deletedTrip) {
-		deletedTrip = alloc_trip();
-	} else {
-		free(deletedTrip->location);
-		free(deletedTrip->notes);
-		memset(deletedTrip, 0, sizeof(struct dive_trip));
-	}
-	// if this is the last dive in that trip, remember the trip as well
-	if (d->divetrip && d->divetrip->dives.nr == 1) {
-		*deletedTrip = *d->divetrip;
-		deletedTrip->location = copy_string(d->divetrip->location);
-		deletedTrip->notes = copy_string(d->divetrip->notes);
-		deletedTrip->dives.nr = 0;
-		deletedDive->divetrip = deletedTrip;
-	}
-	DiveListModel::instance()->removeDiveById(id);
-	delete_single_dive(get_idx_by_uniq_id(id));
-	DiveListModel::instance()->resetInternalData();
+	Command::deleteDive(QVector<dive *>{ d });
 	changesNeedSaving();
 }
 
