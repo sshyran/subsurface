@@ -151,10 +151,10 @@ void run_ui()
 #endif // not Q_OS_ANDROID and not Q_OS_IOS
 	qml_window->show();
 	LOG_STP("run_ui running exec");
+	mlm->resetModel(DiveTripModelBase::TREE); // make sure we have the right model shown
 #else
 	MainWindow::instance()->show();
 #endif // SUBSURFACE_MOBILE
-	mlm->resetModel(DiveTripModelBase::TREE); // make sure we have the right model shown
 	qApp->exec();
 }
 
