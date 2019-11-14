@@ -326,6 +326,7 @@ if (SUBSURFACE_TARGET_EXECUTABLE MATCHES "MobileExecutable")
 		${SUBSURFACE_TARGET}
 		subsurface_profile
 		subsurface_models_mobile
+		subsurface_commands_mobile
 		subsurface_corelib
 		${SUBSURFACE_LINK_LIBRARIES}
 	)
