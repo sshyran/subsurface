@@ -43,7 +43,7 @@ Kirigami.ScrollablePage {
 			id: diveOrTripDelegateItem
 			padding: 0
 			supportsMouseEvents: true
-			checked: !model.isTrip && model.selected
+			checked: !isTrip && selected
 			anchors {
 				left: parent.left
 				right: parent.right
@@ -55,8 +55,8 @@ Kirigami.ScrollablePage {
 
 			// When clicked, a trip expands / unexpands, a dive is opened in DiveDetails
 			onClicked: {
-				if (model.isTrip) {
-					manager.appendTextToLog("clicked on trip " + model.tripTitle)
+				if (isTrip) {
+					manager.appendTextToLog("clicked on trip " + tripTitle)
 					manager.toggle(model.row);
 				} else {
 					manager.appendTextToLog("clicked on dive")
