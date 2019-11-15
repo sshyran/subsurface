@@ -164,6 +164,17 @@ MobileListModel::IndexRange MobileListModel::mapRangeFromSource(const QModelInde
 	}
 }
 
+// This is fun: when inserting, we point to the item *before* which we
+// want to insert. But by inverting the direction we turn that into the item
+// *after* which we want to insert. Thus, we have to add one to the range.
+MobileListModel::IndexRange MobileListModel::mapRangeFromSourceForInsert(const QModelIndex &parent, int first, int last) const
+{
+	IndexRange res = mapRangeFromSource(parent, first, last);
+	++res.first;
+	++res.last;
+	return res;
+}
+
 QModelIndex MobileListModel::mapFromSource(const QModelIndex &idx) const
 {
 	return createIndex(mapRowFromSource(idx.parent(), idx.row()), idx.column());
@@ -259,14 +270,14 @@ void MobileListModel::doneRemove(const QModelIndex &parent, int first, int last)
 
 void MobileListModel::prepareInsert(const QModelIndex &parent, int first, int last)
 {
-	IndexRange range = mapRangeFromSource(parent, first, last);
+	IndexRange range = mapRangeFromSourceForInsert(parent, first, last);
 	if (isExpandedRow(range.parent))
 		beginInsertRows(QModelIndex(), range.first, range.last);
 }
 
 void MobileListModel::doneInsert(const QModelIndex &parent, int first, int last)
 {
-	IndexRange range = mapRangeFromSource(parent, first, last);
+	IndexRange range = mapRangeFromSourceForInsert(parent, first, last);
 	if (isExpandedRow(range.parent)) {
 		// Check if we have to move the expanded item
 		if (!parent.isValid() && expandedRow >= 0 && range.first <= expandedRow)
@@ -280,7 +291,7 @@ void MobileListModel::doneInsert(const QModelIndex &parent, int first, int last)
 void MobileListModel::prepareMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow)
 {
 	IndexRange range = mapRangeFromSource(parent, first, last);
-	IndexRange rangeDest = mapRangeFromSource(dest, destRow, destRow);
+	IndexRange rangeDest = mapRangeFromSourceForInsert(dest, destRow, destRow);
 	if (!isExpandedRow(range.parent) && !isExpandedRow(rangeDest.parent))
 		return;
 	if (isExpandedRow(range.parent) && !isExpandedRow(rangeDest.parent))
@@ -293,7 +304,7 @@ void MobileListModel::prepareMove(const QModelIndex &parent, int first, int last
 void MobileListModel::doneMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow)
 {
 	IndexRange range = mapRangeFromSource(parent, first, last);
-	IndexRange rangeDest = mapRangeFromSource(dest, destRow, destRow);
+	IndexRange rangeDest = mapRangeFromSourceForInsert(dest, destRow, destRow);
 	if (!isExpandedRow(range.parent) && !isExpandedRow(rangeDest.parent))
 		return;
 	if (isExpandedRow(range.parent) && !isExpandedRow(rangeDest.parent))
