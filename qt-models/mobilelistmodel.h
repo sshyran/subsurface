@@ -66,6 +66,7 @@ private:
 	int mapRowFromSource(const QModelIndex &parent, int row) const;
 	int invertRow(const QModelIndex &parent, int row) const;
 	IndexRange mapRangeFromSource(const QModelIndex &parent, int first, int last) const;
+	IndexRange mapRangeFromSourceForInsert(const QModelIndex &parent, int first, int last) const;
 	QModelIndex mapFromSource(const QModelIndex &idx) const;
 	QModelIndex mapToSource(const QModelIndex &idx) const;
 	QVariant data(const QModelIndex &index, int role) const override;
