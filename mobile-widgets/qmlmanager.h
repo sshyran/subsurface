@@ -226,8 +226,6 @@ private:
 	GpsLocation *locationProvider;
 	bool m_loadFromCloud;
 	static QMLManager *m_instance;
-	struct dive *deletedDive;
-	struct dive_trip *deletedTrip;
 	QString m_notificationText;
 	int m_updateSelectedDive;
 	int m_selectedDiveTimestamp;
