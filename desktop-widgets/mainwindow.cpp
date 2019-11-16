@@ -541,7 +541,6 @@ void MainWindow::on_actionCloudstorageopen_triggered()
 	if (!parse_file(fileNamePtr.data(), &dive_table, &trip_table, &dive_site_table))
 		setCurrentFile(fileNamePtr.data());
 	process_loaded_dives();
-	Command::clear();
 	hideProgressBar();
 	refreshDisplay();
 }
@@ -1689,7 +1688,6 @@ void MainWindow::loadFiles(const QStringList fileNames)
 	hideProgressBar();
 	updateRecentFiles();
 	process_loaded_dives();
-	Command::clear();
 
 	refreshDisplay();
 
