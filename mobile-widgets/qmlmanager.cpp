@@ -279,6 +279,7 @@ void QMLManager::applicationStateChanged(Qt::ApplicationState state)
 void QMLManager::openLocalThenRemote(QString url)
 {
 	DiveListModel::instance()->clear();
+	DiveTripModelBase::instance()->clear();
 	setNotificationText(tr("Open local dive data file"));
 	QByteArray fileNamePrt = QFile::encodeName(url);
 	/* if this is a cloud storage repo and we have no local cache (i.e., it's the first time
@@ -319,6 +320,7 @@ void QMLManager::openLocalThenRemote(QString url)
 		qPrefPartialPressureGas::set_po2(git_prefs.pp_graphs.po2);
 		process_loaded_dives();
 		DiveListModel::instance()->reload();
+		MobileListModel::instance()->resetModel(DiveTripModelBase::TREE);
 		appendTextToLog(QStringLiteral("%1 dives loaded from cache").arg(dive_table.nr));
 		setNotificationText(tr("%1 dives loaded from local dive data file").arg(dive_table.nr));
 	}
@@ -555,6 +557,7 @@ void QMLManager::saveCloudCredentials()
 		getCloudURL(url);
 		manager()->clearAccessCache(); // remove any chached credentials
 		clear_git_id(); // invalidate our remembered GIT SHA
+		DiveTripModelBase::instance()->clear();
 		DiveListModel::instance()->reload();
 		GpsListModel::instance()->clear();
 		setStartPageText(tr("Attempting to open cloud storage with new credentials"));
@@ -2067,11 +2070,11 @@ void QMLManager::showDownloadPage(QString deviceString)
 void QMLManager::setFilter(const QString filterText)
 {
 	// show that we are doing something, then do something in another thread in order not to block the UI
-	QMetaObject::invokeMethod(qmlWindow, "showBusyAndDisconnectModel");
+	QMetaObject::invokeMethod(qmlWindow, "showBusy");
 	QtConcurrent::run(QThreadPool::globalInstance(),
 			  [=]{
 				DiveListSortModel::instance()->setFilter(filterText);
-				QMetaObject::invokeMethod(qmlWindow, "hideBusyAndConnectModel");
+				QMetaObject::invokeMethod(qmlWindow, "hideBusy");
 			  });
 }
 
