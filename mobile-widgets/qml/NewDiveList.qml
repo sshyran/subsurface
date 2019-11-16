@@ -12,10 +12,6 @@ Kirigami.ScrollablePage {
 	objectName: "NewDiveList"
 	title: qsTr("New Dive list") // this of course needs to be changed
 	verticalScrollBarPolicy: Qt.ScrollBarAlwaysOff
-	property int credentialStatus: prefs.credentialStatus
-	property int numDives: diveListView.count
-	property color textColor: subsurfaceTheme.textColor
-	property color secondaryTextColor: subsurfaceTheme.secondaryTextColor
 	property int horizontalPadding: Kirigami.Units.gridUnit / 2 - Kirigami.Units.smallSpacing  + 1
 	property QtObject diveListModel: mobileListModel
 	property string numShownText
@@ -181,7 +177,7 @@ Kirigami.ScrollablePage {
 								font.pointSize: subsurfaceTheme.smallPointSize
 								elide: Text.ElideRight
 								maximumLineCount: 1 // needed for elide to work at all
-								color: textColor
+								color: subsurfaceTheme.textColor
 								anchors {
 									left: parent.left
 									leftMargin: horizontalPadding * 2
@@ -202,7 +198,7 @@ Kirigami.ScrollablePage {
 									text: (undefined !== dateTime) ? dateTime : ""
 									width: Math.max(locationText.width * 0.45, paintedWidth) // helps vertical alignment throughout listview
 									font.pointSize: subsurfaceTheme.smallPointSize
-									color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : secondaryTextColor
+									color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : subsurfaceTheme.secondaryTextColor
 								}
 								// spacer, just in case
 								Controls.Label {
@@ -214,14 +210,14 @@ Kirigami.ScrollablePage {
 									text: (undefined !== depthDuration) ? depthDuration : ""
 									width: Math.max(Kirigami.Units.gridUnit * 3, paintedWidth) // helps vertical alignment throughout listview
 									font.pointSize: subsurfaceTheme.smallPointSize
-									color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : secondaryTextColor
+									color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : subsurfaceTheme.secondaryTextColor
 								}
 							}
 							Controls.Label {
 								id: numberText
 								text: "#" + number
 								font.pointSize: subsurfaceTheme.smallPointSize
-								color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : secondaryTextColor
+								color: diveOrTripDelegateItem.checked ? subsurfaceTheme.darkerPrimaryTextColor : subsurfaceTheme.secondaryTextColor
 								anchors {
 									right: parent.right
 									rightMargin: Kirigami.Units.smallSpacing
@@ -240,8 +236,8 @@ Kirigami.ScrollablePage {
 	StartPage {
 		id: startPage
 		anchors.fill: parent
-		opacity: (credentialStatus === CloudStatus.CS_NOCLOUD ||
-			 credentialStatus === CloudStatus.CS_VERIFIED) ? 0 : 1
+		opacity: (prefs.credentialStatus === CloudStatus.CS_NOCLOUD ||
+			 prefs.credentialStatus === CloudStatus.CS_VERIFIED) ? 0 : 1
 		visible: opacity > 0
 		Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
 		function setupActions() {
