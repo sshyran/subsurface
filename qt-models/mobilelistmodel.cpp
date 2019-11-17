@@ -241,7 +241,7 @@ QVariant MobileListModel::data(const QModelIndex &index, int role) const
 void MobileListModel::resetModel(DiveTripModelBase::Layout layout)
 {
 	beginResetModel();
-	DiveTripModelBase::resetModel(layout);
+	MultiFilterSortModel::instance()->resetModel(layout);
 	connectSignals();
 	endResetModel();
 }
