@@ -274,7 +274,68 @@ Kirigami.ScrollablePage {
 		visible: diveListView.visible && diveListView.count === 0
 	}
 
-	// FIXME: deleted all of the filter handling
+	Component {
+		id: filterHeader
+		Rectangle {
+			id: filterRectangle
+			visible: filterBar.height > 0
+			implicitHeight: filterBar.implicitHeight
+			implicitWidth: filterBar.implicitWidth
+			height: filterBar.height
+			anchors.left: parent.left
+			anchors.right: parent.right
+			color: subsurfaceTheme.backgroundColor
+			enabled: rootItem.filterToggle
+			RowLayout {
+				id: filterBar
+				z: 5 //make sure it sits on top
+				states: [
+					State {
+						name: "isVisible"
+						when: rootItem.filterToggle
+						PropertyChanges { target: filterBar; height: sitefilter.implicitHeight }
+					},
+					State {
+						name: "isHidden"
+						when: !rootItem.filterToggle
+						PropertyChanges { target: filterBar; height: 0 }
+					}
+
+				]
+				transitions: [
+					Transition { NumberAnimation { property: "height"; duration: 400; easing.type: Easing.InOutQuad }}
+				]
+				anchors.left: parent.left
+				anchors.right: parent.right
+				anchors.leftMargin: Kirigami.Units.smallSpacing
+				anchors.rightMargin: Kirigami.Units.smallSpacing
+				Controls.TextField  {
+					id: sitefilter
+					z: 10
+					verticalAlignment: TextInput.AlignVCenter
+					Layout.fillWidth: true
+					text: ""
+					placeholderText: "Full text search"
+					onAccepted: {
+						manager.setFilter(text)
+					}
+					onEnabledChanged: {
+						// reset the filter when it gets toggled
+						text = ""
+						if (visible) {
+							forceActiveFocus()
+						}
+					}
+				}
+				Controls.Label {
+					id: numShown
+					z: 10
+					verticalAlignment: Text.AlignVCenter
+					text: numShownText
+				}
+			}
+		}
+	}
 
 	ListView {
 		id: diveListView
@@ -284,8 +345,8 @@ Kirigami.ScrollablePage {
 		model: diveListModel
 		currentIndex: -1
 		delegate: diveOrTripDelegate
-		// header: filterHeader
-		// headerPositioning: ListView.OverlayHeader
+		header: filterHeader
+		headerPositioning: ListView.OverlayHeader
 		boundsBehavior: Flickable.DragOverBounds
 		maximumFlickVelocity: parent.height * 5
 		bottomMargin: Kirigami.Units.iconSizes.medium + Kirigami.Units.gridUnit
