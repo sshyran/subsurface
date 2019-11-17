@@ -370,19 +370,43 @@ void MobileListModel::expand(int row)
 
 void MobileListModel::changed(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
 {
-	// If the expanded row is outside the region to be updated
-	// or the last entry in the region to be updated, we can simply
-	// forward the signal.
-	if (expandedRow < 0 || expandedRow < topLeft.row() || expandedRow >= bottomRight.row()) {
-		dataChanged(mapFromSource(topLeft), mapFromSource(bottomRight), roles);
+	// We don't support changes beyond levels, sorry.
+	if (topLeft.parent().isValid() != bottomRight.parent().isValid()) {
+		qWarning("MobileListModel::changed(): changes across different levels. Ignoring.");
 		return;
 	}
 
-	// We have to split this in two parts: before and including the expanded row
-	// and everything after the expanded row.
-	int numSub = numSubItems();
-	dataChanged(topLeft, createIndex(expandedRow, bottomRight.column()), roles);
-	dataChanged(createIndex(expandedRow + 1 + numSub, topLeft.column()), createIndex(bottomRight.row() + 1 + numSub, bottomRight.column()), roles);
+	if (topLeft.parent().isValid()) {
+		// This is a range in a trip. First do a sanity check.
+		if (topLeft.parent().row() != bottomRight.parent().row()) {
+			qWarning("MobileListModel::changed(): changes inside different trips. Ignoring.");
+			return;
+		}
+
+		// Now check whether this even expanded
+		IndexRange range = mapRangeFromSource(topLeft.parent(), topLeft.row(), bottomRight.row());
+		if (!isExpandedRow(range.parent))
+			return;
+
+		dataChanged(createIndex(range.first, topLeft.column()), createIndex(range.last, bottomRight.column()), roles);
+	} else {
+		// This is a top-level range.
+		IndexRange range = mapRangeFromSource(topLeft.parent(), topLeft.row(), bottomRight.row());
+
+		// If the expanded row is outside the region to be updated
+		// or the last entry in the region to be updated, we can simply
+		// forward the signal.
+		if (expandedRow < 0 || expandedRow < range.first || expandedRow >= range.last) {
+			dataChanged(createIndex(range.first, topLeft.column()), createIndex(range.last, bottomRight.column()), roles);
+			return;
+		}
+
+		// We have to split this in two parts: before and including the expanded row
+		// and everything after the expanded row.
+		int numSub = numSubItems();
+		dataChanged(createIndex(range.first, topLeft.column()), createIndex(expandedRow, bottomRight.column()), roles);
+		dataChanged(createIndex(expandedRow + 1 + numSub, topLeft.column()), createIndex(range.last, bottomRight.column()), roles);
+	}
 }
 
 void MobileListModel::unexpand()
