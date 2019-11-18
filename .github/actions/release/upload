@@ -99,6 +99,7 @@ do
 	if [[ -z "$FILENAME" ]] ; then
 		break
 	fi
+	ls -l "$FILENAME" || true
 	if [[ ! -f $FILENAME ]] ; then
 		echo "Cannot find binary $FILENAME"
 		continue
