@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 #include "mobilelistmodel.h"
 #include "filtermodels.h"
+#include "core/divelist.h"
 
 MobileListModel::MobileListModel()
 	: expandedRow(-1)
@@ -176,7 +177,7 @@ int MobileListModel::rowCount(const QModelIndex &parent) const
 
 int MobileListModel::shown()
 {
-	return MultiFilterSortModel::instance()->divesDisplayed;
+	return shown_dives;
 }
 
 int MobileListModel::columnCount(const QModelIndex &parent) const
