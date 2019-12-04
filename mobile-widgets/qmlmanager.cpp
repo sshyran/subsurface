@@ -28,6 +28,7 @@
 #include "qt-models/mobilelistmodel.h"
 #include "qt-models/filtermodels.h"
 #include "core/device.h"
+#include "core/divefilter.h"
 #include "core/errorhelper.h"
 #include "core/file.h"
 #include "core/qthelper.h"
@@ -2084,11 +2085,7 @@ void QMLManager::setFilter(const QString filterText)
 	QMetaObject::invokeMethod(qmlWindow, "showBusy", Q_ARG(QVariant, QVariant::fromValue(QString())));
 	QtConcurrent::run(QThreadPool::globalInstance(),
 			  [=]{
-				// DiveListSortModel::instance()->setFilter(filterText);
-				FilterData fd;
-				fd.validFilter = true;
-				fd.fullText = filterText;
-				MultiFilterSortModel::instance()->filterDataChanged(fd);
+				DiveFilter::instance()->setFilter(filterText);
 				QMetaObject::invokeMethod(qmlWindow, "hideBusy");
 			  });
 }

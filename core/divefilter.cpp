@@ -22,6 +22,11 @@ bool DiveFilter::showDive(const struct dive *d) const
 	return true;
 }
 
+void DiveFilter::setFilter(const QString &s)
+{
+	// TODO: Implement filtering
+}
+
 #else // SUBSURFACE_MOBILE
 
 #include "desktop-widgets/mapwidget.h"
