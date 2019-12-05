@@ -13,7 +13,7 @@ Kirigami.ScrollablePage {
 	title: qsTr("New Dive list") // this of course needs to be changed
 	verticalScrollBarPolicy: Qt.ScrollBarAlwaysOff
 	property int horizontalPadding: Kirigami.Units.gridUnit / 2 - Kirigami.Units.smallSpacing  + 1
-	property QtObject diveListModel: mobileListModel
+	property QtObject diveListModel: diveModel
 	property string numShownText
 
 	supportsRefreshing: true
@@ -352,7 +352,7 @@ Kirigami.ScrollablePage {
 		bottomMargin: Kirigami.Units.iconSizes.medium + Kirigami.Units.gridUnit
 		cacheBuffer: 40 // this will increase memory use, but should help with scrolling
 		onModelChanged: {
-			numShownText = mobileListModel.shown()
+			numShownText = diveModel.shown()
 		}
 		Component.onCompleted: {
 			manager.appendTextToLog("finished setting up the new diveListView")
