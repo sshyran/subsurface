@@ -26,7 +26,7 @@
 #include "qt-models/messagehandlermodel.h"
 #include "qt-models/tankinfomodel.h"
 #include "qt-models/mobilelistmodel.h"
-#include "qt-models/filtermodels.h"
+#include "qt-models/mobilefiltermodel.h"
 #include "core/device.h"
 #include "core/divefilter.h"
 #include "core/errorhelper.h"
@@ -335,7 +335,7 @@ void QMLManager::openLocalThenRemote(QString url)
 		qPrefPartialPressureGas::set_po2(git_prefs.pp_graphs.po2);
 		process_loaded_dives();
 		DiveListModel::instance()->reload();
-		MobileListModel::instance()->resetModel(DiveTripModelBase::TREE);
+		MobileFilterModel::instance()->resetModel(DiveTripModelBase::TREE);
 		appendTextToLog(QStringLiteral("%1 dives loaded from cache").arg(dive_table.nr));
 		setNotificationText(tr("%1 dives loaded from local dive data file").arg(dive_table.nr));
 	}
@@ -365,7 +365,7 @@ void QMLManager::openLocalThenRemote(QString url)
 
 void QMLManager::toggle(int row)
 {
-	MobileListModel::instance()->toggle(row);
+	MobileFilterModel::instance()->toggle(row);
 }
 
 void QMLManager::updateSiteList()

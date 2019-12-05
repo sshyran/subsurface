@@ -13,8 +13,6 @@ set(SUBSURFACE_GENERIC_MODELS_LIB_SRCS
 	diveplotdatamodel.h
 	divetripmodel.cpp
 	divetripmodel.h
-	filtermodels.cpp
-	filtermodels.h
 	maplocationmodel.cpp
 	maplocationmodel.h
 )
@@ -35,6 +33,8 @@ set(SUBSURFACE_DESKTOP_MODELS_LIB_SRCS
 	diveplannermodel.h
 	divesiteimportmodel.cpp
 	divesiteimportmodel.h
+	filtermodels.cpp
+	filtermodels.h
 	models.cpp
 	models.h
 	tankinfomodel.cpp
@@ -53,6 +53,8 @@ set(SUBSURFACE_DESKTOP_MODELS_LIB_SRCS
 set(SUBSURFACE_MOBILE_MODELS_LIB_SRCS
 	divelistmodel.cpp
 	divelistmodel.h
+	mobilefiltermodel.cpp
+	mobilefiltermodel.h
 	gpslistmodel.cpp
 	gpslistmodel.h
 	messagehandlermodel.cpp

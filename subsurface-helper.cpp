@@ -16,7 +16,7 @@
 #include "mobile-widgets/qmlmanager.h"
 #include "mobile-widgets/qmlprefs.h"
 #include "qt-models/divelistmodel.h"
-#include "qt-models/mobilelistmodel.h"
+#include "qt-models/mobilefiltermodel.h"
 #include "qt-models/gpslistmodel.h"
 #include "qt-models/messagehandlermodel.h"
 #include "profile-widget/qmlprofile.h"
@@ -102,8 +102,8 @@ void run_ui()
 	gpsSortModel->sort(0, Qt::DescendingOrder);
 	QQmlContext *ctxt = engine.rootContext();
 	ctxt->setContextProperty("diveModel", DiveListSortModel::instance());
-	MobileListModel *mlm(MobileListModel::instance());
-	ctxt->setContextProperty("mobileListModel", mlm);
+	MobileFilterModel *mfm = MobileFilterModel::instance();
+	ctxt->setContextProperty("mobileListModel", mfm);
 	ctxt->setContextProperty("gpsModel", gpsSortModel);
 	ctxt->setContextProperty("vendorList", vendorList);
 	set_non_bt_addresses();
@@ -158,7 +158,7 @@ void run_ui()
 	qml_window->setWidth(width);
 #endif // not Q_OS_ANDROID and not Q_OS_IOS
 	qml_window->show();
-	mlm->resetModel(DiveTripModelBase::TREE); // make sure we have the right model shown
+	mfm->resetModel(DiveTripModelBase::TREE); // make sure we have the right model shown
 #else
 	MainWindow::instance()->show();
 #endif // SUBSURFACE_MOBILE

@@ -51,7 +51,6 @@ public:
 	void expand(int row);
 	void unexpand();
 	void toggle(int row);
-	Q_INVOKABLE int shown(); // number dives that are accepted by the filter
 private:
 	struct IndexRange {
 		QModelIndex parent;
