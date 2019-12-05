@@ -8,7 +8,7 @@
 // This should be unified in the future.
 #ifdef SUBSURFACE_MOBILE
 
-class QString;
+#include <QString>
 class DiveFilter {
 public:
 	static DiveFilter *instance();
@@ -17,6 +17,10 @@ public:
 	void setFilter(const QString &s);
 private:
 	DiveFilter();
+	bool enabled;
+	bool includeNotes;
+	Qt::CaseSensitivity cs;
+	QString filterString;
 };
 
 #else

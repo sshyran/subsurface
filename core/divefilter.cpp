@@ -12,19 +12,35 @@ DiveFilter *DiveFilter::instance()
 
 #ifdef SUBSURFACE_MOBILE
 
-DiveFilter::DiveFilter()
+#include "core/settings/qPrefGeneral.h"
+#include "core/qthelper.h" // For diveContainsText
+#include "qt-models/filtermodels.h"
+
+DiveFilter::DiveFilter() :
+	enabled(false),
+	includeNotes(false),
+	cs(Qt::CaseInsensitive)
 {
 }
 
 bool DiveFilter::showDive(const struct dive *d) const
 {
-	// TODO: Do something useful
-	return true;
+	return diveContainsText(d, filterString, cs, includeNotes);
 }
 
-void DiveFilter::setFilter(const QString &s)
+void DiveFilter::setFilter(const QString &sIn)
 {
-	// TODO: Implement filtering
+	QString s = sIn.trimmed();
+	if (s.isEmpty()) {
+		enabled = false;
+		return;
+	}
+
+	enabled = true;
+	includeNotes = qPrefGeneral::filterFullTextNotes();
+	cs = qPrefGeneral::filterCaseSensitive() ? Qt::CaseSensitive : Qt::CaseInsensitive;
+	filterString = s;
+	DiveTripModelBase::instance()->recalculateFilter();
 }
 
 #else // SUBSURFACE_MOBILE
