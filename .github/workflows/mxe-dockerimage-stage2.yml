@@ -9,6 +9,7 @@ on: repository_dispatch
 jobs:
   mxe-build-container-stage2:
     runs-on: ubuntu-latest
+    if: github.repository == 'Subsurface-divelog/subsurface' # don't run these on forks
 
     steps:
     - uses: actions/checkout@v1

@@ -10,6 +10,7 @@ on:
 jobs:
   buildInContainer:
     runs-on: ubuntu-latest
+    if: github.repository == 'Subsurface-divelog/subsurface' # don't run these on forks
     container:
       image: docker://subsurface/android-build-container:5.13.10
 

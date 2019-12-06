@@ -10,6 +10,7 @@ on:
 jobs:
   mobileBuild:
     runs-on: macOS-latest
+    if: github.repository == 'Subsurface-divelog/subsurface' # don't run these on forks
     steps:
     - name: checkout sources
       uses: actions/checkout@v1

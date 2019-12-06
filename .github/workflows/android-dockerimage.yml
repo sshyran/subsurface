@@ -9,6 +9,7 @@ on:
 jobs:
   android-build-container:
     runs-on: ubuntu-latest
+    if: github.repository == 'Subsurface-divelog/subsurface' # don't run these on forks
     env:
       VERSION: ${{ '5.13.10' }} # the version numbers here is based on the Qt version, the third digit is the rev of the docker image
 

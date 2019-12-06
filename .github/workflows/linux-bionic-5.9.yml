@@ -10,6 +10,7 @@ on:
 jobs:
   buildOnBionic:
     runs-on: ubuntu-18.04
+    if: github.repository == 'Subsurface-divelog/subsurface' # don't run these on forks
 
     steps:
     - name: checkout sources

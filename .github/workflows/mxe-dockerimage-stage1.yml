@@ -9,6 +9,7 @@ on:
 jobs:
   mxe-build-container-stage1:
     runs-on: ubuntu-latest
+    if: github.repository == 'Subsurface-divelog/subsurface' # don't run these on forks
     env:
       # IMPORTANT: use the second digit to test new versions, each new official build should be n.0 with the first one being 1.0
       #            as you test changes toward a new release, call those 1.1, 1.2, 1.3, etc
