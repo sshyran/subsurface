@@ -363,9 +363,23 @@ void QMLManager::openLocalThenRemote(QString url)
 	updateAllGlobalLists();
 }
 
+// Should we provide that function as courtesy directly in the model?
+struct dive *QMLManager::diveInRow(int row)
+{
+	MobileFilterModel *model = MobileFilterModel::instance();
+	QModelIndex index = model->index(row, 0, QModelIndex());
+	return index.isValid() ?  model->data(index, DiveTripModelBase::DIVE_ROLE).value<struct dive *>() : nullptr;
+}
+
 void QMLManager::toggle(int row)
 {
 	MobileFilterModel::instance()->toggle(row);
+}
+
+void QMLManager::selectRow(int row)
+{
+	dive *d = diveInRow(row);
+	select_single_dive(d);
 }
 
 void QMLManager::updateSiteList()
