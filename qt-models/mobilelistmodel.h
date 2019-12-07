@@ -44,6 +44,7 @@ public:
 		FirstGasRole,
 		CollapsedRole,
 		SelectedRole,
+		CurrentRole
 	};
 	MobileListModel();
 	static MobileListModel *instance();
@@ -68,6 +69,8 @@ private:
 	IndexRange mapRangeFromSourceForInsert(const QModelIndex &parent, int first, int last) const;
 	QModelIndex mapFromSource(const QModelIndex &idx) const;
 	QModelIndex mapToSource(const QModelIndex &idx) const;
+	static void updateRowAfterRemove(const IndexRange &range, int &row);
+	static void updateRowAfterMove(const IndexRange &range, const IndexRange &dest, int &row);
 	QVariant data(const QModelIndex &index, int role) const override;
 	QModelIndex index(int row, int column, const QModelIndex &parent) const override;
 	QModelIndex parent(const QModelIndex &index) const override;
@@ -76,6 +79,7 @@ private:
 	QHash<int, QByteArray> roleNames() const override;
 
 	int expandedRow;
+	int currentRow; // Row of the currently selected dive, -1 if none.
 private slots:
 	void prepareRemove(const QModelIndex &parent, int first, int last);
 	void doneRemove(const QModelIndex &parent, int first, int last);
@@ -84,6 +88,7 @@ private slots:
 	void prepareMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow);
 	void doneMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow);
 	void changed(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+	void currentDiveChanged(QModelIndex index);
 };
 
 

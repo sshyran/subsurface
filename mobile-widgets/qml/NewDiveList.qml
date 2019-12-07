@@ -39,7 +39,7 @@ Kirigami.ScrollablePage {
 			id: diveOrTripDelegateItem
 			padding: 0
 			supportsMouseEvents: true
-			checked: !isTrip && selected
+			checked: !isTrip && current
 			anchors {
 				left: parent.left
 				right: parent.right

@@ -2,8 +2,9 @@
 #include "mobilelistmodel.h"
 #include "divetripmodel.h"
 
-MobileListModel::MobileListModel()
-	: expandedRow(-1)
+MobileListModel::MobileListModel() :
+	expandedRow(-1),
+	currentRow(-1)
 {
 	connectSignals();
 }
@@ -26,6 +27,7 @@ void MobileListModel::connectSignals()
 	connect(source, &DiveTripModelBase::rowsAboutToBeMoved, this, &MobileListModel::prepareMove);
 	connect(source, &DiveTripModelBase::rowsMoved, this, &MobileListModel::doneMove);
 	connect(source, &DiveTripModelBase::dataChanged, this, &MobileListModel::changed);
+	connect(source, &DiveTripModelBase::currentDiveChanged, this, &MobileListModel::currentDiveChanged);
 }
 
 QHash<int, QByteArray> MobileListModel::roleNames() const
@@ -67,6 +69,7 @@ QHash<int, QByteArray> MobileListModel::roleNames() const
 	roles[EndPressureRole] = "endPressure";
 	roles[FirstGasRole] = "firstGas";
 	roles[SelectedRole] = "selected";
+	roles[CurrentRole] = "current";
 	return roles;
 }
 
@@ -227,6 +230,8 @@ QVariant MobileListModel::data(const QModelIndex &index, int role) const
 {
 	if (role == IsTopLevelRole)
 		return index.row() <= expandedRow || index.row() > expandedRow + 1 + numSubItems();
+	else if (role == CurrentRole)
+		return index.row() == currentRow;
 
 	DiveTripModelBase *source = DiveTripModelBase::instance();
 	return source->data(mapToSource(index), role);
@@ -247,17 +252,25 @@ void MobileListModel::prepareRemove(const QModelIndex &parent, int first, int la
 		beginRemoveRows(QModelIndex(), range.first, range.last);
 }
 
+
+void MobileListModel::updateRowAfterRemove(const IndexRange &range, int &row)
+{
+	if (row < 0)
+		return;
+	else if (range.first <= row && range.last >= row)
+		row = -1;
+	else if (range.first <= row)
+		row -= range.last - range.first + 1;
+}
+
 void MobileListModel::doneRemove(const QModelIndex &parent, int first, int last)
 {
 	IndexRange range = mapRangeFromSource(parent, first, last);
 	if (isExpandedRow(range.parent)) {
-		// Check if we have to move or remove the expanded item
-		if (!parent.isValid() && expandedRow >= 0) {
-			if (range.first <= expandedRow && range.last >= expandedRow)
-				expandedRow = -1;
-			else if (range.first <= expandedRow)
-				expandedRow -= range.last - range.first + 1;
-		}
+		// Check if we have to move or remove the expanded or current item
+		updateRowAfterRemove(range, expandedRow);
+		updateRowAfterRemove(range, currentRow);
+
 		endRemoveRows();
 	}
 }
@@ -276,6 +289,9 @@ void MobileListModel::doneInsert(const QModelIndex &parent, int first, int last)
 		// Check if we have to move the expanded item
 		if (!parent.isValid() && expandedRow >= 0 && range.first <= expandedRow)
 			expandedRow += last - first + 1;
+		// Check if we have to move the current item
+		if (currentRow >= 0 && range.first <= currentRow)
+			currentRow += last - first + 1;
 		endInsertRows();
 	}
 }
@@ -295,6 +311,25 @@ void MobileListModel::prepareMove(const QModelIndex &parent, int first, int last
 	beginMoveRows(QModelIndex(), range.first, range.last, QModelIndex(), rangeDest.first);
 }
 
+void MobileListModel::updateRowAfterMove(const IndexRange &range, const IndexRange &rangeDest, int &row)
+{
+	if (row >= 0 && (rangeDest.first < range.first || rangeDest.first > range.last + 1)) {
+		if (range.first <= row && range.last >= row) {
+			// Case 1: the expanded row is in the moved range
+			if (rangeDest.first <= range.first)
+				row -=  range.first - rangeDest.first;
+			else if (rangeDest.first > range.last + 1)
+				row +=  rangeDest.first - (range.last + 1);
+		} else if (range.first > row && rangeDest.first <= row) {
+			// Case 2: moving things from behind to before the expanded row
+			row += range.last - range.first + 1;
+		} else if (range.first < row && rangeDest.first > row)  {
+			// Case 3: moving things from before to behind the expanded row
+			row -= range.last - range.first + 1;
+		}
+	}
+}
+
 void MobileListModel::doneMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow)
 {
 	IndexRange range = mapRangeFromSource(parent, first, last);
@@ -305,24 +340,8 @@ void MobileListModel::doneMove(const QModelIndex &parent, int first, int last, c
 		return doneRemove(parent, first, last);
 	if (!isExpandedRow(range.parent) && isExpandedRow(dest))
 		return doneInsert(parent, first, last);
-	if (expandedRow >= 0 && (rangeDest.first < range.first || rangeDest.first > range.last + 1)) {
-		if (!parent.isValid() && range.first <= expandedRow && range.last >= expandedRow) {
-			// Case 1: the expanded row is in the moved range
-			// Since we don't support sub-trips, this means that we can't move into another trip
-			if (dest.isValid())
-				qWarning("MobileListModel::doneMove(): moving trips into a subtrip");
-			else if (rangeDest.first <= range.first)
-				expandedRow -=  range.first - rangeDest.first;
-			else if (rangeDest.first > range.last + 1)
-				expandedRow +=  rangeDest.first - (range.last + 1);
-		} else if (range.first > expandedRow && rangeDest.first <= expandedRow) {
-			// Case 2: moving things from behind to before the expanded row
-			expandedRow += range.last - range.first + 1;
-		} else if (range.first < expandedRow && rangeDest.first > expandedRow)  {
-			// Case 3: moving things from before to behind the expanded row
-			expandedRow -= range.last - range.first + 1;
-		}
-	}
+	updateRowAfterMove(range, rangeDest, expandedRow);
+	updateRowAfterMove(range, rangeDest, currentRow);
 }
 
 void MobileListModel::expand(int row)
@@ -416,6 +435,7 @@ void MobileListModel::unexpand()
 	}
 	beginRemoveRows(QModelIndex(), first, last);
 	expandedRow = -1;
+	currentRow = -1; // We collapsed all visible dives -> there is no visible current dive.
 	endRemoveRows();
 }
 
@@ -427,4 +447,32 @@ void MobileListModel::toggle(int row)
 		unexpand();
 	else
 		expand(row);
+}
+
+void MobileListModel::currentDiveChanged(QModelIndex index)
+{
+	// If this is in a trip, expand the trip first,
+	// potentially removing the old current dive.
+	if (index.parent().isValid()) {
+		int row = mapRowFromSourceTopLevel(index.parent().row());
+		expand(row);
+	} else {
+		// If outside of a trip, collapse any expanded trip.
+		unexpand();
+	}
+
+	int row = mapRowFromSource(index.parent(), index.row());
+	if (row < 0) {
+		qWarning("MobileListModel::currentDiveChanged(): can't locate dive?");
+		return;
+	}
+	if (row == currentRow)
+		return; // No change.
+
+	static const QVector<int> roles = { CurrentRole };
+	QModelIndex oldIdx = createIndex(currentRow, 0);
+	QModelIndex newIdx = createIndex(row, 0);
+	currentRow = row;
+	dataChanged(oldIdx, oldIdx, roles);
+	dataChanged(newIdx, newIdx, roles);
 }
