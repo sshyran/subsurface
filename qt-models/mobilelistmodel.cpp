@@ -205,7 +205,7 @@ QModelIndex MobileListModel::index(int row, int column, const QModelIndex &paren
 
 QModelIndex MobileListModel::parent(const QModelIndex &index) const
 {
-	// This is a flat model - there is no index
+	// This is a flat model - there is no parent
 	return QModelIndex();
 }
 
