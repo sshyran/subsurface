@@ -14,7 +14,9 @@ MobileFilterModel::MobileFilterModel()
 	setFilterKeyColumn(-1); // filter all columns
 	setFilterRole(DiveTripModelBase::SHOWN_ROLE); // Let the proxy-model known that is has to react to change events involving SHOWN_ROLE
 
-	setSourceModel(MobileListModel::instance());
+	MobileListModel *m = MobileListModel::instance();
+	setSourceModel(m);
+	connect(m, &MobileListModel::currentDiveChanged, this, &MobileFilterModel::currentDiveChangedSlot);
 }
 
 void MobileFilterModel::resetModel(DiveTripModelBase::Layout layout)
@@ -45,3 +47,12 @@ bool MobileFilterModel::filterAcceptsRow(int source_row, const QModelIndex &sour
 	QModelIndex index0 = m->index(source_row, 0, source_parent);
 	return m->data(index0, DiveTripModelBase::SHOWN_ROLE).value<bool>();
 }
+
+// Translate current dive into local indexes and re-emit signal
+void MobileFilterModel::currentDiveChangedSlot(QModelIndex index)
+{
+	QModelIndex local = mapFromSource(index);
+	if (local.isValid())
+		emit currentDiveChanged(mapFromSource(index));
+}
+

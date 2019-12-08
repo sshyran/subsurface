@@ -27,7 +27,7 @@ void MobileListModel::connectSignals()
 	connect(source, &DiveTripModelBase::rowsAboutToBeMoved, this, &MobileListModel::prepareMove);
 	connect(source, &DiveTripModelBase::rowsMoved, this, &MobileListModel::doneMove);
 	connect(source, &DiveTripModelBase::dataChanged, this, &MobileListModel::changed);
-	connect(source, &DiveTripModelBase::currentDiveChanged, this, &MobileListModel::currentDiveChanged);
+	connect(source, &DiveTripModelBase::currentDiveChanged, this, &MobileListModel::currentDiveChangedSlot);
 }
 
 QHash<int, QByteArray> MobileListModel::roleNames() const
@@ -449,7 +449,7 @@ void MobileListModel::toggle(int row)
 		expand(row);
 }
 
-void MobileListModel::currentDiveChanged(QModelIndex index)
+void MobileListModel::currentDiveChangedSlot(QModelIndex index)
 {
 	// If this is in a trip, expand the trip first,
 	// potentially removing the old current dive.
@@ -463,7 +463,7 @@ void MobileListModel::currentDiveChanged(QModelIndex index)
 
 	int row = mapRowFromSource(index.parent(), index.row());
 	if (row < 0) {
-		qWarning("MobileListModel::currentDiveChanged(): can't locate dive?");
+		qWarning("MobileListModel::currentDiveChangedSlot(): can't locate dive?");
 		return;
 	}
 	if (row == currentRow)
@@ -475,4 +475,5 @@ void MobileListModel::currentDiveChanged(QModelIndex index)
 	currentRow = row;
 	dataChanged(oldIdx, oldIdx, roles);
 	dataChanged(newIdx, newIdx, roles);
+	emit currentDiveChanged(newIdx);
 }

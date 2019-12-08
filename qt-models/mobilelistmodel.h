@@ -80,6 +80,8 @@ private:
 
 	int expandedRow;
 	int currentRow; // Row of the currently selected dive, -1 if none.
+signals:
+	void currentDiveChanged(QModelIndex index);
 private slots:
 	void prepareRemove(const QModelIndex &parent, int first, int last);
 	void doneRemove(const QModelIndex &parent, int first, int last);
@@ -88,7 +90,7 @@ private slots:
 	void prepareMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow);
 	void doneMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow);
 	void changed(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
-	void currentDiveChanged(QModelIndex index);
+	void currentDiveChangedSlot(QModelIndex index);
 };
 
 
