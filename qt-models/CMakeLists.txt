@@ -3,6 +3,8 @@
 
 # models used both mobile and desktop builds
 set(SUBSURFACE_GENERIC_MODELS_LIB_SRCS
+	cleanertablemodel.cpp
+	cleanertablemodel.h
 	completionmodels.cpp
 	completionmodels.h
 	diveimportedmodel.cpp
@@ -15,12 +17,12 @@ set(SUBSURFACE_GENERIC_MODELS_LIB_SRCS
 	divetripmodel.h
 	maplocationmodel.cpp
 	maplocationmodel.h
+	weightsysteminfomodel.cpp
+	weightsysteminfomodel.h
 )
 
 # models exclusively used in desktop builds
 set(SUBSURFACE_DESKTOP_MODELS_LIB_SRCS
-	cleanertablemodel.cpp
-	cleanertablemodel.h
 	cylindermodel.cpp
 	cylindermodel.h
 	divecomputerextradatamodel.cpp
@@ -43,8 +45,6 @@ set(SUBSURFACE_DESKTOP_MODELS_LIB_SRCS
 	treemodel.h
 	weightmodel.cpp
 	weightmodel.h
-	weightsysteminfomodel.cpp
-	weightsysteminfomodel.h
 	yearlystatisticsmodel.cpp
 	yearlystatisticsmodel.h
 )
