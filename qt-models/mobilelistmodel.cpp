@@ -2,24 +2,11 @@
 #include "mobilelistmodel.h"
 #include "divetripmodel.h"
 
-MobileListModel::MobileListModel(DiveTripModelBase *sourceIn) :
-	source(sourceIn),
-	expandedRow(-1),
-	currentRow(-1)
+MobileListModelBase::MobileListModelBase(DiveTripModelBase *sourceIn) : source(sourceIn)
 {
-	connect(source, &DiveTripModelBase::modelAboutToBeReset, this, &MobileListModel::beginResetModel);
-	connect(source, &DiveTripModelBase::modelReset, this, &MobileListModel::endResetModel);
-	connect(source, &DiveTripModelBase::rowsAboutToBeRemoved, this, &MobileListModel::prepareRemove);
-	connect(source, &DiveTripModelBase::rowsRemoved, this, &MobileListModel::doneRemove);
-	connect(source, &DiveTripModelBase::rowsAboutToBeInserted, this, &MobileListModel::prepareInsert);
-	connect(source, &DiveTripModelBase::rowsInserted, this, &MobileListModel::doneInsert);
-	connect(source, &DiveTripModelBase::rowsAboutToBeMoved, this, &MobileListModel::prepareMove);
-	connect(source, &DiveTripModelBase::rowsMoved, this, &MobileListModel::doneMove);
-	connect(source, &DiveTripModelBase::dataChanged, this, &MobileListModel::changed);
-	connect(source, &DiveTripModelBase::currentDiveChanged, this, &MobileListModel::currentDiveChangedSlot);
 }
 
-QHash<int, QByteArray> MobileListModel::roleNames() const
+QHash<int, QByteArray> MobileListModelBase::roleNames() const
 {
 	QHash<int, QByteArray> roles;
 	roles[DiveTripModelBase::IS_TRIP_ROLE] = "isTrip";
@@ -60,6 +47,22 @@ QHash<int, QByteArray> MobileListModel::roleNames() const
 	roles[SelectedRole] = "selected";
 	roles[CurrentRole] = "current";
 	return roles;
+}
+
+MobileListModel::MobileListModel(DiveTripModelBase *source) : MobileListModelBase(source),
+	expandedRow(-1),
+	currentRow(-1)
+{
+	connect(source, &DiveTripModelBase::modelAboutToBeReset, this, &MobileListModel::beginResetModel);
+	connect(source, &DiveTripModelBase::modelReset, this, &MobileListModel::endResetModel);
+	connect(source, &DiveTripModelBase::rowsAboutToBeRemoved, this, &MobileListModel::prepareRemove);
+	connect(source, &DiveTripModelBase::rowsRemoved, this, &MobileListModel::doneRemove);
+	connect(source, &DiveTripModelBase::rowsAboutToBeInserted, this, &MobileListModel::prepareInsert);
+	connect(source, &DiveTripModelBase::rowsInserted, this, &MobileListModel::doneInsert);
+	connect(source, &DiveTripModelBase::rowsAboutToBeMoved, this, &MobileListModel::prepareMove);
+	connect(source, &DiveTripModelBase::rowsMoved, this, &MobileListModel::doneMove);
+	connect(source, &DiveTripModelBase::dataChanged, this, &MobileListModel::changed);
+	connect(source, &DiveTripModelBase::currentDiveChanged, this, &MobileListModel::currentDiveChangedSlot);
 }
 
 // We want to show the newest dives first. Therefore, we have to invert

@@ -1,10 +1,21 @@
 // SPDX-License-Identifier: GPL-2.0
+// This header files declares two linear models used by the mobile UI.
+//
+// MobileListModel presents a list of trips and optionally the dives of
+// one expanded trip. It is used for quick navigation through trips.
+//
+// MobileDiveListModel gives a linearized view of all dives, sorted by
+// trip. Even if there is temporal overlap of trips, all dives of
+// a trip are listed in a contiguous block. This model is used for
+// swiping through dives.
 #ifndef MOBILELISTMODEL_H
 #define MOBILELISTMODEL_H
 
 #include "divetripmodel.h"
 
-class MobileListModel : public QAbstractItemModel {
+// This is the base class of the mobile-list model. All it does
+// is exporting the various dive fields as roles.
+class MobileListModelBase : public QAbstractItemModel {
 	Q_OBJECT
 public:
 	enum Roles {
@@ -46,6 +57,15 @@ public:
 		SelectedRole,
 		CurrentRole
 	};
+	QHash<int, QByteArray> roleNames() const override;
+protected:
+	DiveTripModelBase *source;
+	MobileListModelBase(DiveTripModelBase *source);
+};
+
+class MobileListModel : public MobileListModelBase {
+	Q_OBJECT
+public:
 	MobileListModel(DiveTripModelBase *source);
 	void expand(int row);
 	void unexpand();
@@ -73,7 +93,6 @@ private:
 	QModelIndex parent(const QModelIndex &index) const override;
 	int rowCount(const QModelIndex &parent) const override;
 	int columnCount(const QModelIndex &parent) const override;
-	QHash<int, QByteArray> roleNames() const override;
 
 	DiveTripModelBase *source;
 	int expandedRow;
