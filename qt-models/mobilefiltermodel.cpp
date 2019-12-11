@@ -14,14 +14,9 @@ MobileFilterModel::MobileFilterModel()
 	setFilterKeyColumn(-1); // filter all columns
 	setFilterRole(DiveTripModelBase::SHOWN_ROLE); // Let the proxy-model known that is has to react to change events involving SHOWN_ROLE
 
-	MobileListModel *m = MobileListModel::instance();
+	MobileListModel *m = MobileModels::instance()->listModel();
 	setSourceModel(m);
 	connect(m, &MobileListModel::currentDiveChanged, this, &MobileFilterModel::currentDiveChangedSlot);
-}
-
-void MobileFilterModel::resetModel(DiveTripModelBase::Layout layout)
-{
-	MobileListModel::instance()->resetModel(layout);
 }
 
 // It is annoying that we can't simply map a row. We have to map a full index.
@@ -38,7 +33,7 @@ int MobileFilterModel::shown()
 
 void MobileFilterModel::toggle(int row)
 {
-	MobileListModel::instance()->toggle(mapRowToSource(row));
+	MobileModels::instance()->listModel()->toggle(mapRowToSource(row));
 }
 
 bool MobileFilterModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const

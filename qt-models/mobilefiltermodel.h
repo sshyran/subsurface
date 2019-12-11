@@ -11,7 +11,6 @@ public:
 	static MobileFilterModel *instance();
 	bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
-	void resetModel(DiveTripModelBase::Layout layout);
 	void toggle(int row);
 	Q_INVOKABLE int shown(); // number dives that are accepted by the filter
 signals:

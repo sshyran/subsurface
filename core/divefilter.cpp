@@ -40,7 +40,7 @@ void DiveFilter::setFilter(const QString &sIn)
 	includeNotes = qPrefGeneral::filterFullTextNotes();
 	cs = qPrefGeneral::filterCaseSensitive() ? Qt::CaseSensitive : Qt::CaseInsensitive;
 	filterString = s;
-	DiveTripModelBase::instance()->recalculateFilter();
+	emit diveListNotifier.filterReset();
 }
 
 #else // SUBSURFACE_MOBILE
