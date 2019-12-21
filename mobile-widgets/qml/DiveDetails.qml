@@ -9,7 +9,6 @@ import org.kde.kirigami 2.4 as Kirigami
 Kirigami.Page {
 	id: diveDetailsPage // but this is referenced as detailsWindow
 	objectName: "DiveDetails"
-	property alias currentIndex: diveDetailsListView.currentIndex
 	property alias currentItem: diveDetailsListView.currentItem
 	property alias dive_id: detailsEdit.dive_id
 	property alias number: detailsEdit.number
@@ -303,7 +302,6 @@ Kirigami.Page {
 			id: diveDetailsListView
 			anchors.fill: parent
 			model: swipeModel
-			currentIndex: -1
 			boundsBehavior: Flickable.StopAtBounds
 			maximumFlickVelocity: parent.width * 5
 			orientation: ListView.Horizontal
@@ -313,7 +311,7 @@ Kirigami.Page {
 			snapMode: ListView.SnapOneItem
 			highlightRangeMode: ListView.StrictlyEnforceRange
 			onMovementEnded: {
-				currentIndex = indexAt(contentX+1, 1);
+				manager.selectSwipeRow(indexAt(contentX+1, 1))
 			}
 			delegate: Flickable {
 				id: internalScrollView
@@ -331,8 +329,7 @@ Kirigami.Page {
 			ScrollIndicator.horizontal: ScrollIndicator { }
 			Connections {
 				target: swipeModel
-				onCurrentDiveChanged: { currentIndex = index.row
-							diveDetailsListView.positionViewAtIndex(currentIndex, ListView.End) }
+				onCurrentDiveChanged: { diveDetailsListView.positionViewAtIndex(index.row, ListView.End) }
 			}
 		}
 	}
