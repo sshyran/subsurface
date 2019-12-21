@@ -438,20 +438,17 @@ void MobileListModel::currentDiveChangedSlot(QModelIndex index)
 		unexpand();
 	}
 
-	int row = mapRowFromSource(index.parent(), index.row());
-	if (row < 0) {
-		qWarning("MobileListModel::currentDiveChangedSlot(): can't locate dive?");
-		return;
-	}
+	int row = index.isValid() ? mapRowFromSource(index.parent(), index.row()) : -1;
 	if (row == currentRow)
 		return; // No change.
 
 	static const QVector<int> roles = { CurrentRole };
 	QModelIndex oldIdx = createIndex(currentRow, 0);
-	QModelIndex newIdx = createIndex(row, 0);
+	QModelIndex newIdx = row >= 0 ? createIndex(row, 0) : QModelIndex();
 	currentRow = row;
 	dataChanged(oldIdx, oldIdx, roles);
-	dataChanged(newIdx, newIdx, roles);
+	if (row >= 0)
+		dataChanged(newIdx, newIdx, roles);
 	emit currentDiveChanged(newIdx);
 }
 
