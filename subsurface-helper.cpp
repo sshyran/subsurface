@@ -16,6 +16,7 @@
 #include "mobile-widgets/qmlmanager.h"
 #include "mobile-widgets/qmlprefs.h"
 #include "qt-models/mobilefiltermodel.h"
+#include "qt-models/mobilelistmodel.h"
 #include "qt-models/gpslistmodel.h"
 #include "qt-models/messagehandlermodel.h"
 #include "profile-widget/qmlprofile.h"
@@ -104,6 +105,7 @@ void run_ui()
 	ctxt->setContextProperty("diveModel", mfm);
 	ctxt->setContextProperty("gpsModel", gpsSortModel);
 	ctxt->setContextProperty("vendorList", vendorList);
+	ctxt->setContextProperty("swipeModel", MobileModels::instance()->swipeModel());
 	set_non_bt_addresses();
 
 	ctxt->setContextProperty("connectionListModel", &connectionListModel);

@@ -230,7 +230,7 @@ Kirigami.Page {
 	}
 
 	function showDiveIndex(id) {
-		currentIndex = diveModel.getIdxForId(id);
+		currentIndex = swipeModel.getIdxForId(id);
 		diveDetailsListView.positionViewAtIndex(currentIndex, ListView.End);
 	}
 
@@ -308,7 +308,7 @@ Kirigami.Page {
 		ListView {
 			id: diveDetailsListView
 			anchors.fill: parent
-			model: diveModel
+			model: swipeModel
 			currentIndex: -1
 			boundsBehavior: Flickable.StopAtBounds
 			maximumFlickVelocity: parent.width * 5
@@ -336,7 +336,7 @@ Kirigami.Page {
 			}
 			ScrollIndicator.horizontal: ScrollIndicator { }
 			Connections {
-				target: diveModel
+				target: swipeModel
 				onCurrentDiveChanged: { currentIndex = index.row
 							diveDetailsListView.positionViewAtIndex(currentIndex, ListView.End) }
 			}

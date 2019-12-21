@@ -4,7 +4,7 @@
 // MobileListModel presents a list of trips and optionally the dives of
 // one expanded trip. It is used for quick navigation through trips.
 //
-// MobileDiveListModel gives a linearized view of all dives, sorted by
+// MobileSwipeModel gives a linearized view of all dives, sorted by
 // trip. Even if there is temporal overlap of trips, all dives of
 // a trip are listed in a contiguous block. This model is used for
 // swiping through dives.
@@ -61,6 +61,10 @@ public:
 protected:
 	DiveTripModelBase *source;
 	MobileListModelBase(DiveTripModelBase *source);
+private:
+	int columnCount(const QModelIndex &parent) const override;
+	QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+	QModelIndex parent(const QModelIndex &index) const override;
 };
 
 class MobileListModel : public MobileListModelBase {
@@ -89,17 +93,51 @@ private:
 	static void updateRowAfterRemove(const IndexRange &range, int &row);
 	static void updateRowAfterMove(const IndexRange &range, const IndexRange &dest, int &row);
 	QVariant data(const QModelIndex &index, int role) const override;
-	QModelIndex index(int row, int column, const QModelIndex &parent) const override;
-	QModelIndex parent(const QModelIndex &index) const override;
 	int rowCount(const QModelIndex &parent) const override;
-	int columnCount(const QModelIndex &parent) const override;
 
-	DiveTripModelBase *source;
 	int expandedRow;
 	int currentRow; // Row of the currently selected dive, -1 if none.
 signals:
 	void currentDiveChanged(QModelIndex index);
 private slots:
+	void prepareRemove(const QModelIndex &parent, int first, int last);
+	void doneRemove(const QModelIndex &parent, int first, int last);
+	void prepareInsert(const QModelIndex &parent, int first, int last);
+	void doneInsert(const QModelIndex &parent, int first, int last);
+	void prepareMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow);
+	void doneMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow);
+	void changed(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+	void currentDiveChangedSlot(QModelIndex index);
+};
+
+class MobileSwipeModel : public MobileListModelBase {
+	Q_OBJECT
+public:
+	MobileSwipeModel(DiveTripModelBase *source);
+	static MobileSwipeModel *instance();
+	void resetModel(DiveTripModelBase::Layout layout);	// Switch between tree and list view
+private:
+	std::vector<int> firstElement; // First element of top level item.
+	int rows;
+	QVariant data(const QModelIndex &index, int role) const override;
+	int rowCount(const QModelIndex &parent) const override;
+
+	// Translate indexes from/to source
+	QModelIndex mapToSource(const QModelIndex &index) const;
+	int mapTopLevelFromSource(int row) const;
+	int elementCountInTopLevel(int row) const;
+	int mapRowFromSource(const QModelIndex &parent, int row) const;
+	int mapRowFromSource(const QModelIndex &parent) const;
+
+	// Update elements
+	void initData();
+	int removeTopLevel(int begin, int end);
+	void addTopLevel(int row, const std::vector<int> &items);
+	void updateTopLevel(int row, int delta);
+signals:
+	void currentDiveChanged(QModelIndex index);
+private slots:
+	void doneReset();
 	void prepareRemove(const QModelIndex &parent, int first, int last);
 	void doneRemove(const QModelIndex &parent, int first, int last);
 	void prepareInsert(const QModelIndex &parent, int first, int last);
@@ -116,12 +154,14 @@ class MobileModels {
 public:
 	static MobileModels *instance();
 	MobileListModel *listModel();
+	MobileSwipeModel *swipeModel();
 	void clear(); // Clear all dive data
 	void reset(); // Reset model after having reloaded the core data
 private:
 	MobileModels();
 	DiveTripModelTree source;
 	MobileListModel lm;
+	MobileSwipeModel sm;
 };
 
 // Helper functions - these are actually defined in DiveObjectHelper.cpp. Why declare them here?
