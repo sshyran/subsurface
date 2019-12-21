@@ -481,6 +481,7 @@ void MobileSwipeModel::initData()
 			source->rowCount(index) : 1;
 	}
 	rows = act;
+	invalidateSourceRowCache();
 }
 
 void MobileSwipeModel::doneReset()
@@ -489,28 +490,50 @@ void MobileSwipeModel::doneReset()
 	endResetModel();
 }
 
-QModelIndex MobileSwipeModel::mapToSource(const QModelIndex &index) const
+void MobileSwipeModel::invalidateSourceRowCache() const
 {
-	if (!index.isValid() || firstElement.empty())
-		return QModelIndex();
-	int localRow = index.row();
+	cachedRow = -1;
+	cacheSourceParent = QModelIndex();
+	cacheSourceRow = -1;
+}
+
+void MobileSwipeModel::updateSourceRowCache(int localRow) const
+{
+	if (firstElement.empty())
+		return invalidateSourceRowCache();
+
+	cachedRow = localRow;
 
 	// Do a binary search for the first top-level item that starts after the given row
 	auto idx = std::upper_bound(firstElement.begin(), firstElement.end(), localRow);
 	if (idx == firstElement.begin())
-		return QModelIndex(); // Huh? localRow was negative? Then index->isValid() should have returned true.
+		return invalidateSourceRowCache(); // Huh? localRow was negative? Then index->isValid() should have returned true.
+
 	--idx;
 	int topLevelRow = idx - firstElement.begin();
 	int topLevelRowSource = firstElement.end() - idx - 1; // Reverse direction.
-	QModelIndex topLevelIndex = source->index(topLevelRowSource, 0);
 	int indexInRow = localRow - *idx;
 	if (indexInRow == 0) {
 		// This might be a top-level dive or a one-dive trip. Perhaps we should save which one it is.
-		if (!source->data(topLevelIndex, DiveTripModelBase::IS_TRIP_ROLE).value<bool>())
-			return source->index(topLevelRowSource, index.column());
+		if (!source->data(source->index(topLevelRowSource, 0), DiveTripModelBase::IS_TRIP_ROLE).value<bool>()) {
+			cacheSourceParent = QModelIndex();
+			cacheSourceRow = topLevelRowSource;
+			return;
+		}
 	}
+	cacheSourceParent = source->index(topLevelRowSource, 0);
 	int numElements = elementCountInTopLevel(topLevelRow);
-	return source->index(numElements - indexInRow - 1, index.column(), topLevelIndex);
+	cacheSourceRow = numElements - indexInRow - 1;
+}
+
+QModelIndex MobileSwipeModel::mapToSource(const QModelIndex &index) const
+{
+	if (!index.isValid())
+		return QModelIndex();
+	if (index.row() != cachedRow)
+		updateSourceRowCache(index.row());
+
+	return cacheSourceRow >= 0 ? source->index(cacheSourceRow, index.column(), cacheSourceParent) : QModelIndex();
 }
 
 int MobileSwipeModel::mapTopLevelFromSource(int row) const
@@ -590,6 +613,7 @@ void MobileSwipeModel::doneRemove(const QModelIndex &parent, int first, int last
 		// This is part of a trip. Only the number of items has to be changed.
 		updateTopLevel(mapTopLevelFromSource(parent.row()), -(last - first + 1));
 	}
+	invalidateSourceRowCache();
 	endRemoveRows();
 }
 
@@ -623,6 +647,7 @@ void MobileSwipeModel::doneInsert(const QModelIndex &parent, int first, int last
 		updateTopLevel(mapTopLevelFromSource(parent.row()), last - first + 1);
 		endInsertRows();
 	}
+	invalidateSourceRowCache();
 }
 
 void MobileSwipeModel::prepareMove(const QModelIndex &parent, int first, int last, const QModelIndex &dest, int destRow)
@@ -681,6 +706,7 @@ void MobileSwipeModel::doneMove(const QModelIndex &parent, int first, int last, 
 			updateTopLevel(toLocal, numMoved);
 		}
 	}
+	invalidateSourceRowCache();
 }
 
 void MobileSwipeModel::changed(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)

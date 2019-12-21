@@ -122,12 +122,20 @@ private:
 	QVariant data(const QModelIndex &index, int role) const override;
 	int rowCount(const QModelIndex &parent) const override;
 
+	// Since accesses to data come in bursts, we cache map-to-source lookup.
+	// Note that this is not thread safe. We suppose that the model is only ever accessed from the UI thread.
+	mutable int cachedRow = -1;
+	mutable QModelIndex cacheSourceParent;
+	mutable int cacheSourceRow = -1;
+
 	// Translate indexes from/to source
 	QModelIndex mapToSource(const QModelIndex &index) const;
 	int mapTopLevelFromSource(int row) const;
 	int elementCountInTopLevel(int row) const;
 	int mapRowFromSource(const QModelIndex &parent, int row) const;
 	int mapRowFromSource(const QModelIndex &parent) const;
+	void invalidateSourceRowCache() const;
+	void updateSourceRowCache(int row) const;
 
 	// Update elements
 	void initData();
