@@ -152,7 +152,7 @@ Kirigami.ScrollablePage {
 						Rectangle {
 							id: leftBarDive
 							width: Kirigami.Units.smallSpacing
-							height: diveListEntry.height * 0.8
+							height: isTopLevel ? 0 : diveListEntry.height * 0.8
 							color: subsurfaceTheme.lightPrimaryColor
 							anchors {
 								left: parent.left
